@@ -14,6 +14,10 @@ const initRenderer = (function(canvas, options={}) {
 
     const  num_bezier_vertices = initBuffers();
 
+
+    let time = 0;
+    let frame = 0;
+
     const data = {};
 
     prepareCanvas();
@@ -285,7 +289,6 @@ const initRenderer = (function(canvas, options={}) {
         let total_bezier_curves = json.total_bezier_curves;
 
 
-        console.log(total_bezier_curves);
         const bezierTexture = gl.createTexture();
         gl.activeTexture(gl.TEXTURE1);
         gl.bindTexture(gl.TEXTURE_2D, bezierTexture);
@@ -295,6 +298,7 @@ const initRenderer = (function(canvas, options={}) {
         gl.uniform1f(locations["bezier_modulo"] , bezier_array_size);
 
         const bezier_buffer_data = new Uint8Array(bezier_array_size*bezier_array_size*4);
+
 
         let offset = 0;
 
@@ -327,6 +331,8 @@ const initRenderer = (function(canvas, options={}) {
 
         gl.uniform1i(locations["u_bezier"], 1);
 
+        data.bezier_buffer = bezier_buffer_data;
+
 
     }
 
@@ -337,10 +343,15 @@ const initRenderer = (function(canvas, options={}) {
 
         data.shapes = json.shapes;
         data.num_bezier_curves = json.num_bezier_curves;
+        data.updates = [];
 
         setBezierTexture(json);
+    }
 
-        render();
+    function update(time) {
+
+        frame ++;
+
     }
 
     function render() {
@@ -414,7 +425,23 @@ const initRenderer = (function(canvas, options={}) {
 
     }
 
+    function step() {
+
+        update();
+        render();
+        console.log(`On frame ${frame}`);
+
+        if(frame < 150) return window.requestAnimationFrame(step);
+        else{
+            console.log(`Done`);
+        }
+    }
+
     function play() {
+
+
+        window.requestAnimationFrame(step);
+
 
     }
 
