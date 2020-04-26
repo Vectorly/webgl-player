@@ -1,0 +1,19 @@
+{
+  "name": "@vectorly/webgl-player",
+  "version": "0.0.1",
+  "description": "WebGL Player for vvid videos",
+  "main": "dist/vvgl.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Vectorly/webgl-player.git"
+  },
+  "author": "Sam Bhattacharyya",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Vectorly/webgl-player/issues"
+  },
+  "homepage": "https://github.com/Vectorly/webgl-player#readme"
+}
