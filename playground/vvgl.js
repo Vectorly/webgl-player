@@ -320,7 +320,7 @@ const initRenderer = (function(canvas, options={}) {
 
                 let idx = offset + j*24;
 
-                if(!shape.hidden)  bezier_buffer_data.set(curve, idx);
+                if(!shape.hidden) bezier_buffer_data.set(curve, idx);
 
                 bezier_buffer_data.set(shape.data, idx+16);
                 curves++;
@@ -492,7 +492,7 @@ const initRenderer = (function(canvas, options={}) {
         update();
         render();
 
-        if(frame < 100) return window.requestAnimationFrame(step);
+        if(frame < data.updates.length) return window.requestAnimationFrame(step);
         else{
             console.log(`Done`);
         }
