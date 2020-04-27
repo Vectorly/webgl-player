@@ -2,10 +2,20 @@ const initRenderer = (function(canvas, options={}) {
 
 
     const gl = getContext(canvas);
+    var ext = gl.getExtension('OES_element_index_uint');
+
 
     const bezierProgram = initBezierProgram();
 
     gl.useProgram(bezierProgram);
+
+
+    const array_index = new Uint32Array(1000000);
+
+    array_index.forEach(function (el, i) {
+        array_index[i] = i;
+    });
+
 
     const locations = getVariableLocations(bezierProgram);
 
@@ -13,6 +23,9 @@ const initRenderer = (function(canvas, options={}) {
     const height= options.height || 1440;
 
     const  num_bezier_vertices = initBuffers();
+
+
+
 
 
     let time = 0;
@@ -196,6 +209,8 @@ const initRenderer = (function(canvas, options={}) {
     function initBuffers() {
 
 
+
+
         const index_array = new Float32Array(1000000);
 
         index_array.forEach(function (el, i) {
@@ -206,6 +221,13 @@ const initRenderer = (function(canvas, options={}) {
         gl.bindBuffer(gl.ARRAY_BUFFER, index_buffer);
         gl.bufferData(gl.ARRAY_BUFFER, index_array, gl.STATIC_DRAW);
         gl.vertexAttribPointer(locations["i"], 1, gl.FLOAT, false, 0, 0);
+
+
+        const element_array_index_buffer = gl.createBuffer();
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, element_array_index_buffer);
+        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, array_index, gl.STATIC_DRAW);
+
+
 
 
         let step = 5;
@@ -355,6 +377,7 @@ const initRenderer = (function(canvas, options={}) {
 
     function load(json) {
 
+
         data.shapes = json.shapes;
         data.num_bezier_curves = json.num_bezier_curves;
         data.updates = json.updates;
@@ -422,7 +445,7 @@ const initRenderer = (function(canvas, options={}) {
         let offset = 0;
         let l = 0;
 
-        for(let i =0; i < data.shapes.length; i++){
+        for(let i =0; i < 15; i++){
 
 
             let shape = data.shapes[i];
@@ -440,15 +463,17 @@ const initRenderer = (function(canvas, options={}) {
 
 
                 if(l > 0){
-                    gl.drawArrays(gl.TRIANGLE_FAN, offset + this_offset,l);
-                    this_offset +=l;
+                //    gl.drawArrays(gl.TRIANGLE_FAN, offset + this_offset, l);
+
+                    gl.drawElements(gl.TRIANGLE_FAN, l,  gl.UNSIGNED_INT, offset + this_offset);
+                    this_offset +=l*4;
                 }
 
 
             }
 
 
-            offset += num_bezier_vertices*shape.max_curves;
+            offset += num_bezier_vertices*shape.max_curves*4;
 
 
         }
@@ -459,7 +484,7 @@ const initRenderer = (function(canvas, options={}) {
 
         offset = 0;
 
-        for(let i =0; i < data.shapes.length; i++){
+        for(let i =0; i < 15; i++){
 
             let shape = data.shapes[i];
             gl.stencilFunc(gl.EQUAL, i%100+1 , 0xff);
@@ -477,15 +502,17 @@ const initRenderer = (function(canvas, options={}) {
 
 
                 if(l > 0){
-                    gl.drawArrays(gl.TRIANGLE_FAN, offset + this_offset,l);
-                    this_offset +=l;
+
+                 //   gl.drawArrays(gl.TRIANGLE_FAN, offset + this_offset, l);
+                    gl.drawElements(gl.TRIANGLE_FAN, l,  gl.UNSIGNED_INT, offset + this_offset);
+                    this_offset +=l*4;
                 }
 
 
             }
 
 
-            offset += num_bezier_vertices*shape.max_curves;
+            offset += num_bezier_vertices*shape.max_curves*4;
         }
 
         gl.flush();
