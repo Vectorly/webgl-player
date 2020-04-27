@@ -416,6 +416,8 @@ const initRenderer = (function(canvas, options={}) {
 
         const num_buckets = 100;
 
+        data.num_buckets = num_buckets;
+
         const shapes_per_bucket = Math.ceil(data.shapes.length / num_buckets);
 
         console.log(`Shapes per bucket`);
@@ -455,6 +457,7 @@ const initRenderer = (function(canvas, options={}) {
 
     function load(json) {
 
+        json.shapes = shuffle(json.shapes);
 
         data.shapes = json.shapes;
         data.num_bezier_curves = json.num_bezier_curves;
@@ -524,10 +527,10 @@ const initRenderer = (function(canvas, options={}) {
         let l = 0;
 
 
-        for(let i =0; i < 100; i++){
+        for(let i =0; i < data.num_buckets; i++){
 
-            gl.stencilFunc(gl.ALWAYS, (i%100+1) , 0xff);
-            gl.stencilMask((i%100+1));
+            gl.stencilFunc(gl.ALWAYS, (i+1) , 0xff);
+            gl.stencilMask(i+1);
             gl.depthMask(false);
             gl.colorMask(false, false, false, false);
 
@@ -545,11 +548,11 @@ const initRenderer = (function(canvas, options={}) {
 
         offset = 0;
 
-        for(let i =0; i < 100; i++){
+        for(let i =0; i <  data.num_buckets; i++){
 
             let shape = data.shapes[i];
-            gl.stencilFunc(gl.EQUAL, i%100+1 , 0xff);
-            gl.stencilMask(i%100+1);
+            gl.stencilFunc(gl.EQUAL, i+1 , 0xff);
+            gl.stencilMask(i+1);
             gl.depthMask(false);
             gl.colorMask(true, true, true, true);
 
@@ -591,6 +594,24 @@ const initRenderer = (function(canvas, options={}) {
     };
 
 
+    function shuffle(array) {
+        var currentIndex = array.length, temporaryValue, randomIndex;
+
+        // While there remain elements to shuffle...
+        while (0 !== currentIndex) {
+
+            // Pick a remaining element...
+            randomIndex = Math.floor(Math.random() * currentIndex);
+            currentIndex -= 1;
+
+            // And swap it with the current element.
+            temporaryValue = array[currentIndex];
+            array[currentIndex] = array[randomIndex];
+            array[randomIndex] = temporaryValue;
+        }
+
+        return array;
+    }
 
 
 });
