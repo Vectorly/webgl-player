@@ -445,7 +445,7 @@ const initRenderer = (function(canvas, options={}) {
         let offset = 0;
         let l = 0;
 
-        for(let i =0; i < 15; i++){
+        for(let i =0; i < data.shapes.length; i++){
 
 
             let shape = data.shapes[i];
@@ -484,7 +484,7 @@ const initRenderer = (function(canvas, options={}) {
 
         offset = 0;
 
-        for(let i =0; i < 15; i++){
+        for(let i =0; i < data.shapes.length; i++){
 
             let shape = data.shapes[i];
             gl.stencilFunc(gl.EQUAL, i%100+1 , 0xff);
