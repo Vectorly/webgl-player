@@ -354,14 +354,9 @@ const initRenderer = (function(canvas, options={}) {
 
     function load(json) {
 
-        json.shapes = json.shapes.slice(0,200);
-
         data.shapes = json.shapes;
         data.num_bezier_curves = json.num_bezier_curves;
         data.updates = json.updates;
-
-
-
 
         setBezierTexture(json);
     }
