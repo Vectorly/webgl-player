@@ -12,9 +12,6 @@ const initRenderer = (function(canvas, options={}) {
 
     const array_index = new Uint32Array(1000000);
 
-    array_index.forEach(function (el, i) {
-        array_index[i] = i;
-    });
 
 
     const locations = getVariableLocations(bezierProgram);
@@ -223,11 +220,6 @@ const initRenderer = (function(canvas, options={}) {
         gl.vertexAttribPointer(locations["i"], 1, gl.FLOAT, false, 0, 0);
 
 
-        const element_array_index_buffer = gl.createBuffer();
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, element_array_index_buffer);
-        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, array_index, gl.STATIC_DRAW);
-
-
 
 
         let step = 5;
@@ -308,6 +300,13 @@ const initRenderer = (function(canvas, options={}) {
     function setBezierTexture(json) {
 
 
+
+        array_index.forEach(function (el, i) {
+            array_index[i] = i;
+        });
+
+
+
         let shapes = json.shapes;
         let total_bezier_curves = json.num_bezier_curves;
 
@@ -330,6 +329,9 @@ const initRenderer = (function(canvas, options={}) {
 
 
         const offsets = new Array(shapes.length);
+
+
+
 
 
         for(let i =0; i <shapes.length; i++){
@@ -368,6 +370,42 @@ const initRenderer = (function(canvas, options={}) {
         gl.uniform1i(locations["u_bezier"], 1);
 
         data.bezier_buffer = bezier_buffer_data;
+
+
+        offset = 0;
+
+
+        for(let i =0; i <shapes.length; i++){
+
+            let shape = shapes[i];
+
+            let this_offset = 0;
+
+            for(let j =0; j < shape.contour_lengths.length; j++){
+
+                let l = num_bezier_vertices*shape.contour_lengths[j];
+
+
+
+
+                if(l > 0){
+                    array_index[offset + this_offset + l] = 0xffffffff;
+                    this_offset +=l;
+                }
+
+
+            }
+
+            offset += num_bezier_vertices*shape.max_curves;
+
+
+        }
+
+
+
+        const element_array_index_buffer = gl.createBuffer();
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, element_array_index_buffer);
+        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, array_index, gl.STATIC_DRAW);
 
 
     }
@@ -454,6 +492,8 @@ const initRenderer = (function(canvas, options={}) {
             gl.depthMask(false);
             gl.colorMask(false, false, false, false);
 
+
+
             let this_offset = 0;
 
 
@@ -463,8 +503,8 @@ const initRenderer = (function(canvas, options={}) {
 
 
                 if(l > 0){
-                //    gl.drawArrays(gl.TRIANGLE_FAN, offset + this_offset, l);
 
+                    //   gl.drawArrays(gl.TRIANGLE_FAN, offset + this_offset, l);
                     gl.drawElements(gl.TRIANGLE_FAN, l,  gl.UNSIGNED_INT, offset + this_offset);
                     this_offset +=l*4;
                 }
@@ -474,7 +514,14 @@ const initRenderer = (function(canvas, options={}) {
 
 
             offset += num_bezier_vertices*shape.max_curves*4;
+/*
 
+            l = num_bezier_vertices*shape.max_curves;
+            gl.drawElements(gl.TRIANGLE_FAN, l,  gl.UNSIGNED_INT, offset + this_offset);
+
+
+            offset += num_bezier_vertices*shape.max_curves*4;
+*/
 
         }
 
