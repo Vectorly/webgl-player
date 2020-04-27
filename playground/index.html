@@ -45,6 +45,7 @@ loadJSON("data.json", function (json) {
 
 
     const shapes = json.shapes;
+    const updates = json.updates;
 
 
     let number_lines = 0;
@@ -110,8 +111,79 @@ loadJSON("data.json", function (json) {
 
 
 
+    updates.forEach(function (frame_update, frame_num) {
+
+
+
+        if(!frame_update) return null;
+
+        frame_update.forEach(function (update) {
+
+
+            if(update.type === "hide") return null;
+            if(update.type === "show") {
+                update.contour_lengths = shapes[update.i].contour_lengths;
+                update.bezier_curves = shapes[update.i].bezier_curves;
+                return null;
+            }
+
+
+            let contour_lengths = [];
+            let bezier_curves = [];
+
+            for (let i =0; i < update.contours.length; i++){
+
+                let contour = update.contours[i];
+
+                contour_lengths.push(contour.length);
+                for(let j = 0; j < contour.length; j++ ){
+
+                    let curve  = [];
+
+                    if(contour[j].length ===4) {
+                        number_lines++;
+
+                        curve = [contour[j][0], contour[j][1],  contour[j][0], contour[j][1], contour[j][2], contour[j][3], contour[j][2], contour[j][3]];
+
+                    } else{
+                        curve = contour[j];
+                    }
+
+
+                    let curve_points = [];
+
+                    for(let k = 0; k < 8; k++){
+                        let packed = packInt16(curve[k]);
+                        curve_points.push(packed[0], packed[1]);
+
+                    }
+
+
+                    if(curve_points.length  > 0){
+                        bezier_curves.push(curve_points);
+                    }
+
+
+                }
+
+            }
+
+
+            update.bezier_curves = bezier_curves;
+            update.contour_lengths = contour_lengths;
+
+
+        });
+
+
+    });
+
+
+
+
     renderer.load({
         shapes: shapes,
+        updates: updates,
         num_bezier_curves: json.num_curves
     });
 

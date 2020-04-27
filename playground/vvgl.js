@@ -297,6 +297,8 @@ const initRenderer = (function(canvas, options={}) {
 
         gl.uniform1f(locations["bezier_modulo"] , bezier_array_size);
 
+        data.bezier_array_size = bezier_array_size;
+
         const bezier_buffer_data = new Uint8Array(bezier_array_size*bezier_array_size*4);
 
 
@@ -352,11 +354,12 @@ const initRenderer = (function(canvas, options={}) {
 
     function load(json) {
 
-        json.shapes = json.shapes.slice(0,100);
+        json.shapes = json.shapes.slice(0,200);
 
         data.shapes = json.shapes;
         data.num_bezier_curves = json.num_bezier_curves;
-        data.updates = [];
+        data.updates = json.updates;
+
 
 
 
@@ -366,6 +369,44 @@ const initRenderer = (function(canvas, options={}) {
     function update(time) {
 
         frame ++;
+
+
+        const updates = data.updates[frame];
+
+        if(!updates) return null;
+
+        updates.forEach(function (update) {
+
+            let shape_id = update.i;
+            let shape = data.shapes[shape_id];
+
+
+            let offset = data.offsets[shape_id];
+
+            if(update.type === "hide") return data.bezier_buffer.fill(0, offset, offset + shape.max_curves*24);
+
+
+            for(let j = 0; j < update.bezier_curves.length; j++){
+                let curve = update.bezier_curves[j];
+
+                let idx = offset + j*24;
+
+                data.bezier_buffer.set(curve, idx);
+
+                data.bezier_buffer.set(shape.data, idx+16);
+
+
+            }
+
+
+            if(update.type === "morph") data.shapes[shape_id].contour_lengths = update.contour_lengths;
+
+        });
+
+
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA,data.bezier_array_size, data.bezier_array_size, 0, gl.RGBA, gl.UNSIGNED_BYTE, data.bezier_buffer);
+
+
 
     }
 
@@ -456,7 +497,7 @@ const initRenderer = (function(canvas, options={}) {
         update();
         render();
 
-        if(frame < 150) return window.requestAnimationFrame(step);
+        if(frame < 2) return window.requestAnimationFrame(step);
         else{
             console.log(`Done`);
         }
