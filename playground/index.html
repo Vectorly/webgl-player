@@ -2,9 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Vanilla js</title>
-
-    <script src="data.js"></script>
+    <title>WebGL Demo</title>
     <script src="vvgl.js"></script>
 </head>
 <body>
@@ -35,110 +33,112 @@ function packInt16(x) {
 }
 
 
-let total_bezier_curves = 0;
 
 
-let number_lines = 0;
-shapes.forEach(function (shape) {
-
-
-    let contour_lengths = [];
-    let bezier_curves = [];
-
-
-
-    for (let i =0; i < shape.contours.length; i++){
-
-        let contour = shape.contours[i];
-
-        contour_lengths.push(contour.length);
-        for(let j = 0; j < contour.length; j++ ){
-
-            let curve  = [];
-
-            if(contour[j].length ===4) {
-                number_lines++;
-
-                curve = [contour[j][0], contour[j][1],  contour[j][0], contour[j][1], contour[j][2], contour[j][3], contour[j][2], contour[j][3]];
-
-            } else{
-                curve = contour[j];
-            }
-
-            total_bezier_curves++;
-
-
-            let curve_points = [];
-
-            for(let k = 0; k < 8; k++){
-                let packed = packInt16(curve[k]);
-                curve_points.push(packed[0], packed[1]);
-
-            }
-
-
-            if(curve_points.length  > 0){
-                bezier_curves.push(curve_points);
-            }
-
-
-
-
-
-
-        }
-
-        if(bezier_curves.length > 0)  {
-      //      console.log(`Currently on contour ${i}, with ${contour.length} bezier curves`);
-        }
-
-
-
-
-
-
-
-
-    }
-
-
-
-    let xpacked = packInt16(shape.xy[0]);
-    let ypacked = packInt16(shape.xy[1]);
-
-    shape.data = [xpacked[0], xpacked[1], ypacked[0], ypacked[1], shape.color[0], shape.color[1], shape.color[2]];
-
-
-
-
-    shape.bezier_curves = bezier_curves;
-    shape.contour_lengths = contour_lengths;
-
-
-
-});
 
 
 
 const renderer = initRenderer("glcanvas");
 
 
-let a = Date.now();
+loadJSON("data.json", function (json) {
 
 
-renderer.load({
-    shapes: shapes,
-    total_bezier_curves: total_bezier_curves
+    const shapes = json.shapes;
+
+
+    let number_lines = 0;
+    shapes.forEach(function (shape) {
+
+
+        let contour_lengths = [];
+        let bezier_curves = [];
+
+
+
+        for (let i =0; i < shape.contours.length; i++){
+
+            let contour = shape.contours[i];
+
+            contour_lengths.push(contour.length);
+            for(let j = 0; j < contour.length; j++ ){
+
+                let curve  = [];
+
+                if(contour[j].length ===4) {
+                    number_lines++;
+
+                    curve = [contour[j][0], contour[j][1],  contour[j][0], contour[j][1], contour[j][2], contour[j][3], contour[j][2], contour[j][3]];
+
+                } else{
+                    curve = contour[j];
+                }
+
+
+                let curve_points = [];
+
+                for(let k = 0; k < 8; k++){
+                    let packed = packInt16(curve[k]);
+                    curve_points.push(packed[0], packed[1]);
+
+                }
+
+
+                if(curve_points.length  > 0){
+                    bezier_curves.push(curve_points);
+                }
+
+
+            }
+
+        }
+
+
+        let xpacked = packInt16(shape.xy[0]);
+        let ypacked = packInt16(shape.xy[1]);
+
+        shape.data = [xpacked[0], xpacked[1], ypacked[0], ypacked[1], shape.color[0], shape.color[1], shape.color[2]];
+
+
+
+        shape.bezier_curves = bezier_curves;
+        shape.contour_lengths = contour_lengths;
+
+
+
+    });
+
+
+
+    renderer.load({
+        shapes: shapes,
+        num_bezier_curves: json.num_curves
+    });
+
+
+
+    renderer.play();
+
 });
 
 
 
-let b = Date.now();
-
-renderer.play();
 
 
 
+function loadJSON(filename, callback) {
+
+
+    let oReq = new XMLHttpRequest();
+    oReq.onload = function (e) {
+
+        callback(JSON.parse(oReq.responseText));
+    };
+    oReq.open("GET", filename);
+    oReq.responseType = "text";
+    oReq.send();
+
+}
 
 </script>
 

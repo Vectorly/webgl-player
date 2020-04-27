@@ -286,7 +286,7 @@ const initRenderer = (function(canvas, options={}) {
 
 
         let shapes = json.shapes;
-        let total_bezier_curves = json.total_bezier_curves;
+        let total_bezier_curves = json.num_bezier_curves;
 
 
         const bezierTexture = gl.createTexture();
@@ -344,6 +344,8 @@ const initRenderer = (function(canvas, options={}) {
         data.shapes = json.shapes;
         data.num_bezier_curves = json.num_bezier_curves;
         data.updates = [];
+
+
 
         setBezierTexture(json);
     }
@@ -429,7 +431,6 @@ const initRenderer = (function(canvas, options={}) {
 
         update();
         render();
-        console.log(`On frame ${frame}`);
 
         if(frame < 150) return window.requestAnimationFrame(step);
         else{
