@@ -372,6 +372,7 @@ const initRenderer = (function(canvas, options={}) {
 
         updates.forEach(function (update) {
 
+
             let shape_id = update.i;
             let shape = data.shapes[shape_id];
 
@@ -399,7 +400,7 @@ const initRenderer = (function(canvas, options={}) {
         });
 
 
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA,data.bezier_array_size, data.bezier_array_size, 0, gl.RGBA, gl.UNSIGNED_BYTE, data.bezier_buffer);
+        gl.texSubImage2D(gl.TEXTURE_2D, 0, 0 , 0,data.bezier_array_size, data.bezier_array_size,  gl.RGBA, gl.UNSIGNED_BYTE, data.bezier_buffer);
 
 
 
@@ -485,6 +486,7 @@ const initRenderer = (function(canvas, options={}) {
             offset += num_bezier_vertices*shape.max_curves;
         }
 
+        gl.flush();
     }
 
     function step() {
