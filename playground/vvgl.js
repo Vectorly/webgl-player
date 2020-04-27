@@ -301,23 +301,34 @@ const initRenderer = (function(canvas, options={}) {
 
 
         let offset = 0;
-
         let curves = 0;
+
+
+        const offsets = new Array(shapes.length);
+
 
         for(let i =0; i <shapes.length; i++){
 
             let shape = shapes[i];
 
+            offsets[i] = offset;
+
             for(let j = 0; j < shape.bezier_curves.length; j++){
                 let curve = shape.bezier_curves[j];
-                bezier_buffer_data.set(curve, offset);
-                bezier_buffer_data.set(shape.data, offset+16);
+
+                let idx = offset + j*24;
+
+                if(!shape.hidden)  bezier_buffer_data.set(curve, idx);
+
+                bezier_buffer_data.set(shape.data, idx+16);
                 curves++;
-                offset += 24;
 
             }
 
+            offset += 24*shape.max_curves;
+
         }
+
 
 
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
@@ -327,7 +338,6 @@ const initRenderer = (function(canvas, options={}) {
 
 
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, bezier_array_size, bezier_array_size, 0, gl.RGBA, gl.UNSIGNED_BYTE, bezier_buffer_data);
-
 
         gl.uniform1i(locations["u_bezier"], 1);
 
@@ -340,6 +350,8 @@ const initRenderer = (function(canvas, options={}) {
 
 
     function load(json) {
+
+        json.shapes = json.shapes.slice(0,10);
 
         data.shapes = json.shapes;
         data.num_bezier_curves = json.num_bezier_curves;
@@ -379,6 +391,8 @@ const initRenderer = (function(canvas, options={}) {
             gl.depthMask(false);
             gl.colorMask(false, false, false, false);
 
+            let this_offset = 0;
+
 
             for(let j =0; j < shape.contour_lengths.length; j++){
 
@@ -386,12 +400,15 @@ const initRenderer = (function(canvas, options={}) {
 
 
                 if(l > 0){
-                    gl.drawArrays(gl.TRIANGLE_FAN, offset,l);
-                    offset +=l;
+                    gl.drawArrays(gl.TRIANGLE_FAN, offset + this_offset,l);
+                    this_offset +=l;
                 }
 
 
             }
+
+
+            offset += num_bezier_vertices*shape.max_curves;
 
 
         }
@@ -411,18 +428,24 @@ const initRenderer = (function(canvas, options={}) {
             gl.colorMask(true, true, true, true);
 
 
+            let this_offset = 0;
+
+
             for(let j =0; j < shape.contour_lengths.length; j++){
 
                 l = num_bezier_vertices*shape.contour_lengths[j];
 
-                if(l > 0){
 
-                    gl.drawArrays(gl.TRIANGLE_FAN, offset,l);
-                    offset +=l;
+                if(l > 0){
+                    gl.drawArrays(gl.TRIANGLE_FAN, offset + this_offset,l);
+                    this_offset +=l;
                 }
 
 
             }
+
+
+            offset += num_bezier_vertices*shape.max_curves;
         }
 
     }
