@@ -330,6 +330,7 @@ const initRenderer = (function(canvas, options={}) {
         }
 
 
+        data.offsets = offsets;
 
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
@@ -351,7 +352,7 @@ const initRenderer = (function(canvas, options={}) {
 
     function load(json) {
 
-        json.shapes = json.shapes.slice(0,10);
+        json.shapes = json.shapes.slice(0,100);
 
         data.shapes = json.shapes;
         data.num_bezier_curves = json.num_bezier_curves;
