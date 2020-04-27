@@ -25,7 +25,7 @@ const initRenderer = (function(canvas, options={}) {
 
 
     function getContext(canvas) {
-        return document.getElementById(canvas).getContext("webgl", {stencil:true});
+        return document.getElementById(canvas).getContext("webgl2", {stencil:true});
     }
 
 
@@ -208,7 +208,7 @@ const initRenderer = (function(canvas, options={}) {
         gl.vertexAttribPointer(locations["i"], 1, gl.FLOAT, false, 0, 0);
 
 
-        let step = 10;
+        let step = 5;
 
         const t_array = [];
 
@@ -278,6 +278,7 @@ const initRenderer = (function(canvas, options={}) {
         gl.enable(gl.STENCIL_TEST);
         gl.enable(gl.DEPTH_TEST);
         gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
+        window.gl  = gl;
 
     }
 
@@ -365,6 +366,7 @@ const initRenderer = (function(canvas, options={}) {
 
         frame ++;
 
+        return null;
 
         const updates = data.updates[frame];
 
