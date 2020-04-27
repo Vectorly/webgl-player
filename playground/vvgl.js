@@ -475,7 +475,6 @@ const initRenderer = (function(canvas, options={}) {
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT);
 
 
-
         gl.enableVertexAttribArray(locations["i"]);
 
         gl.stencilOp(gl.KEEP, gl.KEEP, gl.INVERT);
@@ -485,7 +484,6 @@ const initRenderer = (function(canvas, options={}) {
 
         for(let i =0; i < data.shapes.length; i++){
 
-
             let shape = data.shapes[i];
             gl.stencilFunc(gl.ALWAYS, (i%100+1) , 0xff);
             gl.stencilMask((i%100+1));
@@ -493,35 +491,11 @@ const initRenderer = (function(canvas, options={}) {
             gl.colorMask(false, false, false, false);
 
 
-
-            let this_offset = 0;
-
-
-            for(let j =0; j < shape.contour_lengths.length; j++){
-
-                l = num_bezier_vertices*shape.contour_lengths[j];
-
-
-                if(l > 0){
-
-                    //   gl.drawArrays(gl.TRIANGLE_FAN, offset + this_offset, l);
-                    gl.drawElements(gl.TRIANGLE_FAN, l,  gl.UNSIGNED_INT, offset + this_offset);
-                    this_offset +=l*4;
-                }
-
-
-            }
-
-
-            offset += num_bezier_vertices*shape.max_curves*4;
-/*
-
             l = num_bezier_vertices*shape.max_curves;
-            gl.drawElements(gl.TRIANGLE_FAN, l,  gl.UNSIGNED_INT, offset + this_offset);
-
+            gl.drawElements(gl.TRIANGLE_FAN, l,  gl.UNSIGNED_INT, offset);
 
             offset += num_bezier_vertices*shape.max_curves*4;
-*/
+
 
         }
 
@@ -539,27 +513,13 @@ const initRenderer = (function(canvas, options={}) {
             gl.depthMask(false);
             gl.colorMask(true, true, true, true);
 
-
-            let this_offset = 0;
-
-
-            for(let j =0; j < shape.contour_lengths.length; j++){
-
-                l = num_bezier_vertices*shape.contour_lengths[j];
-
-
-                if(l > 0){
-
-                 //   gl.drawArrays(gl.TRIANGLE_FAN, offset + this_offset, l);
-                    gl.drawElements(gl.TRIANGLE_FAN, l,  gl.UNSIGNED_INT, offset + this_offset);
-                    this_offset +=l*4;
-                }
-
-
-            }
-
+            l = num_bezier_vertices*shape.max_curves;
+            gl.drawElements(gl.TRIANGLE_FAN, l,  gl.UNSIGNED_INT, offset);
 
             offset += num_bezier_vertices*shape.max_curves*4;
+
+
+
         }
 
         gl.flush();
