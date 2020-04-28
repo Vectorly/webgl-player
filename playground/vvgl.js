@@ -322,7 +322,6 @@ const initRenderer = (function(canvas, options={}) {
         const bezier_buffer_data = new Uint8Array(bezier_array_size*bezier_array_size*4);
 
 
-
         const foreground_shapes = json.foreground_shapes;
         const background_shapes = json.background_shapes;
         let offset = 0;
@@ -337,11 +336,6 @@ const initRenderer = (function(canvas, options={}) {
             let shape = foreground_shapes[i];
 
             offsets[i] = offset;
-
-            if(i < 5){
-
-                console.log(`Setting Offset for shape ${i}: ${offset}, shape rid: ${shape.rid}`);
-            }
 
 
             for(let j = 0; j < shape.bezier_curves.length; j++){
@@ -389,11 +383,7 @@ const initRenderer = (function(canvas, options={}) {
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, bezier_array_size, bezier_array_size, 0, gl.RGBA, gl.UNSIGNED_BYTE, bezier_buffer_data);
 
 
-
         data.bezier_buffer = bezier_buffer_data;
-
-
-  //      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, data.bezier_array_size, data.bezier_array_size, 0, gl.RGBA, gl.UNSIGNED_BYTE, data.bezier_buffer);
 
         gl.uniform1i(locations["u_bezier"], 1);
 
@@ -505,8 +495,6 @@ const initRenderer = (function(canvas, options={}) {
 
     function load(json) {
 
-        json.background_shapes = [];
-
         data.foreground_shapes = json.foreground_shapes;
         data.background_shapes = json.background_shapes;
         data.num_bezier_curves = json.num_bezier_curves;
@@ -580,15 +568,15 @@ const initRenderer = (function(canvas, options={}) {
                     }
                 }
 
+                array_index[offset] = 0xffffffff;
+
                 array_index[offset + num_bezier_vertices*shape.max_curves] = 0xffffffff;
 
                 data.foreground_shapes[shape_id].contour_lengths = update.contour_lengths;
 
-
             }
 
         });
-
 
 
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, data.bezier_array_size, data.bezier_array_size, 0, gl.RGBA, gl.UNSIGNED_BYTE, data.bezier_buffer);
