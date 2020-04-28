@@ -452,7 +452,7 @@ const initRenderer = (function(canvas, options={}) {
         data.index_buffer = element_array_index_buffer;
 
 
-        const num_buckets = 100;
+        const num_buckets = 80;
 
         data.num_buckets = num_buckets;
 
@@ -589,7 +589,7 @@ const initRenderer = (function(canvas, options={}) {
     function render() {
 
         gl.clearColor(0, 0, 0, 1.0);
-        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT);
+
 
 
         gl.stencilOp(gl.KEEP, gl.KEEP, gl.INVERT);
@@ -633,6 +633,10 @@ const initRenderer = (function(canvas, options={}) {
 
         }
 
+
+        gl.clear( gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT);
+
+     //   gl.flush();
 
     }
 
