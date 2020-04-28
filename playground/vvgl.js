@@ -398,7 +398,7 @@ const initRenderer = (function(canvas, options={}) {
     function load(json) {
 
         json.foreground_shapes = [];
-        json.background_shapes = json.background_shapes.slice(0, 10);
+        json.background_shapes = json.background_shapes.slice(0, 100);
 
         data.foreground_shapes = json.foreground_shapes;
         data.background_shapes = json.background_shapes;
@@ -512,7 +512,7 @@ const initRenderer = (function(canvas, options={}) {
             gl.depthMask(false);
             gl.colorMask(true, true, true, true);
 
-            console.log(`Making a call for i ${i}, length: ${num_bezier_vertices}, offset: ${offset}, instances: ${data.bucket_lengths[i]} `);
+        //    console.log(`Making a call for i ${i}, length: ${num_bezier_vertices}, offset: ${offset}, instances: ${data.bucket_lengths[i]} `);
          //   gl.drawArrays(gl.LINES,  0, num_bezier_vertices);
             //gl.drawArraysInstanced(gl.TRIANGLE_FAN,  0, num_bezier_vertices, data.bucket_lengths[i]);
 
