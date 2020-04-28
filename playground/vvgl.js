@@ -539,7 +539,7 @@ const initRenderer = (function(canvas, options={}) {
 
             let shape_id = update.i;
 
-            if(shape_id > 20) return null;
+         //   if(shape_id > 20) return null;
             let shape = data.foreground_shapes[shape_id];
 
             let offset = data.offsets[shape_id];
@@ -595,7 +595,7 @@ const initRenderer = (function(canvas, options={}) {
                     }
                 }
 
-              //  array_index[offset + num_bezier_vertices*shape.max_curves] = 0xffffffff;
+                array_index[offset + num_bezier_vertices*shape.max_curves] = 0xffffffff;
 
                 data.foreground_shapes[shape_id].contour_lengths = update.contour_lengths;
 
