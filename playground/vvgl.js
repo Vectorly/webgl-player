@@ -520,16 +520,6 @@ const initRenderer = (function(canvas, options={}) {
         frame ++;
 
 
-    //    for(let i =0; i < 100; i++){
-        //gl.bufferSubData(gl.ELEMENT_ARRAY_BUFFER, 0, array_index, 0, array_index.length*.1);
-      //  }
-
-
-
-       // gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, data.bezier_array_size, data.bezier_array_size, 0, gl.RGBA, gl.UNSIGNED_BYTE, data.bezier_buffer_data);
-
-       // return null;
-
         const updates = data.updates[frame];
 
         if(!updates) return null;
@@ -539,19 +529,16 @@ const initRenderer = (function(canvas, options={}) {
 
             let shape_id = update.i;
 
-         //   if(shape_id > 20) return null;
+
             let shape = data.foreground_shapes[shape_id];
 
             let offset = data.offsets[shape_id];
 
 
-            console.log(`Offset for shapeid ${shape_id}: ${offset}, shape rid: ${shape.rid}`);
-
-
             if(update.type === "hide") return data.bezier_buffer.fill(0, offset, offset + shape.max_curves*24);
 
-
             data.bezier_buffer.fill(0, offset, offset + shape.max_curves*24);
+
             for(let j = 0; j < update.bezier_curves.length; j++){
                 let curve = update.bezier_curves[j];
 
@@ -561,10 +548,8 @@ const initRenderer = (function(canvas, options={}) {
 
                 data.bezier_buffer.set(shape.data, idx+16);
 
-
             }
 
-         //   console.log(`Buffer offset: ${data.offsets[shape_id]}, index offset: ${data.index_offsets[shape_id]} for shape${shape_id}`);
 
             offset = data.index_offsets[shape_id];
 
