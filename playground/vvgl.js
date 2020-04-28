@@ -184,7 +184,7 @@ const initRenderer = (function(canvas, options={}) {
 
      //   const bezier_buffer_data = new Float32Array(json.num_bezier_curves*13);
 
-        const bezier_buffer_data = new Float32Array(6*13);
+        const bezier_buffer_data = new Float32Array(json.num_bezier_curves*13);
         //const y_data = new Float32Array(6*4);
      //   const x_data = new Float32Array(6*4);
 
@@ -512,9 +512,9 @@ const initRenderer = (function(canvas, options={}) {
             gl.depthMask(false);
             gl.colorMask(true, true, true, true);
 
-            console.log(`Making a call for i ${i}, length: ${num_bezier_vertices}, offset: ${offset}, instances: ${data.bucket_lengths} `);
+            console.log(`Making a call for i ${i}, length: ${num_bezier_vertices}, offset: ${offset}, instances: ${data.bucket_lengths[i]} `);
          //   gl.drawArrays(gl.LINES,  0, num_bezier_vertices);
-            gl.drawArraysInstanced(gl.LINES,  0, num_bezier_vertices, 6);
+            gl.drawArraysInstanced(gl.LINES,  0, num_bezier_vertices, data.bucket_lengths[i]);
 
 
             //gl.drawArraysInstanced(gl.LINES,  offset, num_bezier_vertices, data.bucket_lengths[i]);
