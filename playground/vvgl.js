@@ -74,27 +74,27 @@ const initRenderer = (function(canvas, options={}) {
             "attribute vec4 t_vector;",
             "attribute vec4 x_vector;",
             "attribute vec4 y_vector;",
-        //    "attribute vec3 color;",
+            "attribute vec3 color;",
             "attribute vec2 offset;",
 
             "uniform vec2 resolution;",
-         //   "varying highp vec3 vColor;",
+            "varying highp vec3 vColor;",
 
             "void main(void) {",
 
 
                 "float x = 2.0*(dot(t_vector, x_vector) + offset[0])/resolution[0] - 1.0;",
                 "float y = 2.0*(dot(t_vector, y_vector) + offset[1])/resolution[1] - 1.0;",
-            //    "vColor = color;",
+                "vColor = color/256.0;",
                 "gl_Position = vec4(x, y, 0, 1);",
             "}"
         ].join("\n"));
 
 
         let gFragmentShader = createAndCompileShader(gl.FRAGMENT_SHADER, [
-         //   "varying highp vec3 vColor;",
+            "varying highp vec3 vColor;",
             "void main(void) {",
-            "gl_FragColor = vec4(1.0, 0.0, 0.5, 1.0);",
+            "gl_FragColor = vec4(vColor.x, vColor.y, vColor.z, 1.0);",
             "}"
         ].join("\n"));
 
@@ -109,7 +109,7 @@ const initRenderer = (function(canvas, options={}) {
 
 
         const uniforms = ["resolution"];
-        const attributes = ["t_vector", "x_vector", "y_vector",  "offset"];
+        const attributes = ["t_vector", "x_vector", "y_vector",  "offset", "color"];
 
    //     const attributes = ["t_vector", "x_vector", "y_vector"];
 
@@ -268,13 +268,13 @@ const initRenderer = (function(canvas, options={}) {
         gl.bufferData(gl.ARRAY_BUFFER, bezier_buffer_data, gl.DYNAMIC_DRAW);
         gl.vertexAttribPointer(locations["offset"], 4, gl.FLOAT, false, 52, 32);
         gl.vertexAttribDivisor(locations["offset"], 1);
-/*
+
         const color_buffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, color_buffer);
         gl.bufferData(gl.ARRAY_BUFFER, bezier_buffer_data, gl.DYNAMIC_DRAW);
         gl.vertexAttribPointer(locations["color"], 4, gl.FLOAT, false, 52, 40);
         gl.vertexAttribDivisor(locations["color"], 1);
-*/
+
 
 
 
