@@ -398,7 +398,7 @@ const initRenderer = (function(canvas, options={}) {
     function load(json) {
 
         json.foreground_shapes = [];
-        json.background_shapes = json.background_shapes.slice(0, 1);
+        json.background_shapes = json.background_shapes.slice(0, 10);
 
         data.foreground_shapes = json.foreground_shapes;
         data.background_shapes = json.background_shapes;
