@@ -182,9 +182,11 @@ const initRenderer = (function(canvas, options={}) {
     function setBezierData(json) {
 
 
-      //  const bezier_buffer_data = new Float32Array(json.num_bezier_curves*13);
-        const y_data = new Float32Array(6*4);
-        const x_data = new Float32Array(6*4);
+     //   const bezier_buffer_data = new Float32Array(json.num_bezier_curves*13);
+
+        const bezier_buffer_data = new Float32Array(6*8);
+        //const y_data = new Float32Array(6*4);
+     //   const x_data = new Float32Array(6*4);
 
         const foreground_shapes = json.foreground_shapes;
         const background_shapes = json.background_shapes;
@@ -229,9 +231,9 @@ const initRenderer = (function(canvas, options={}) {
 
             for(let j = 0; j < shape.bezier_curves.length; j++){
                 let curve = shape.bezier_curves[j];
-                let idx = offset + j*4;
-                x_data.set(curve.slice(0,4), idx);
-                y_data.set(curve.slice(4,8), idx);
+                let idx = offset + j*8;
+                bezier_buffer_data.set(curve, idx);
+
              //   bezier_buffer_data.set(shape.data, idx+8);
                 curves++;
             }
@@ -244,26 +246,22 @@ const initRenderer = (function(canvas, options={}) {
 
 
 
+        console.log("Bezier buffer data");
+        console.log(bezier_buffer_data);
 
-
-        console.log("X data");
-        console.log(x_data);
-
-        console.log("Y data");
-        console.log(y_data);
 
 
         const x_buffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, x_buffer);
-        gl.bufferData(gl.ARRAY_BUFFER, x_data, gl.DYNAMIC_DRAW);
-        gl.vertexAttribPointer(locations["x_vector"], 4, gl.FLOAT, false, 0, 0);
+        gl.bufferData(gl.ARRAY_BUFFER, bezier_buffer_data, gl.DYNAMIC_DRAW);
+        gl.vertexAttribPointer(locations["x_vector"], 4, gl.FLOAT, false, 32, 0);
         gl.vertexAttribDivisor(locations["x_vector"], 1);
 
 
         const y_buffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, y_buffer);
-        gl.bufferData(gl.ARRAY_BUFFER, y_data, gl.DYNAMIC_DRAW);
-        gl.vertexAttribPointer(locations["y_vector"], 4, gl.FLOAT, false, 0,0);
+        gl.bufferData(gl.ARRAY_BUFFER, bezier_buffer_data, gl.DYNAMIC_DRAW);
+        gl.vertexAttribPointer(locations["y_vector"], 4, gl.FLOAT, false, 32, 16);
         gl.vertexAttribDivisor(locations["y_vector"], 1);
         /*
         const offset_buffer = gl.createBuffer();
