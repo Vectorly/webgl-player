@@ -338,6 +338,12 @@ const initRenderer = (function(canvas, options={}) {
 
             offsets[i] = offset;
 
+            if(i < 5){
+
+                console.log(`Setting Offset for shape ${i}: ${offset}, shape rid: ${shape.rid}`);
+            }
+
+
             for(let j = 0; j < shape.bezier_curves.length; j++){
                 let curve = shape.bezier_curves[j];
 
@@ -382,15 +388,23 @@ const initRenderer = (function(canvas, options={}) {
 
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, bezier_array_size, bezier_array_size, 0, gl.RGBA, gl.UNSIGNED_BYTE, bezier_buffer_data);
 
-        gl.uniform1i(locations["u_bezier"], 1);
+
 
         data.bezier_buffer = bezier_buffer_data;
 
 
+  //      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, data.bezier_array_size, data.bezier_array_size, 0, gl.RGBA, gl.UNSIGNED_BYTE, data.bezier_buffer);
+
+        gl.uniform1i(locations["u_bezier"], 1);
+
         offset = 0;
 
 
+        const index_offsets = new Array(foreground_shapes.length);
+
         for(let i =0; i <foreground_shapes.length; i++){
+
+            index_offsets[i] = offset;
 
             let shape = foreground_shapes[i];
 
@@ -410,6 +424,9 @@ const initRenderer = (function(canvas, options={}) {
             offset += num_bezier_vertices*shape.max_curves;
             array_index[offset] = 0xffffffff;
         }
+
+        data.index_offsets = index_offsets;
+
 
         data.foreground_length = JSON.parse(JSON.stringify(offset));
 
@@ -488,6 +505,8 @@ const initRenderer = (function(canvas, options={}) {
 
     function load(json) {
 
+        json.background_shapes = [];
+
         data.foreground_shapes = json.foreground_shapes;
         data.background_shapes = json.background_shapes;
         data.num_bezier_curves = json.num_bezier_curves;
@@ -506,7 +525,10 @@ const initRenderer = (function(canvas, options={}) {
       //  }
 
 
-        return null;
+
+       // gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, data.bezier_array_size, data.bezier_array_size, 0, gl.RGBA, gl.UNSIGNED_BYTE, data.bezier_buffer_data);
+
+       // return null;
 
         const updates = data.updates[frame];
 
@@ -516,14 +538,20 @@ const initRenderer = (function(canvas, options={}) {
 
 
             let shape_id = update.i;
-            let shape = data.shapes[shape_id];
 
+            if(shape_id > 20) return null;
+            let shape = data.foreground_shapes[shape_id];
 
             let offset = data.offsets[shape_id];
+
+
+            console.log(`Offset for shapeid ${shape_id}: ${offset}, shape rid: ${shape.rid}`);
+
 
             if(update.type === "hide") return data.bezier_buffer.fill(0, offset, offset + shape.max_curves*24);
 
 
+            data.bezier_buffer.fill(0, offset, offset + shape.max_curves*24);
             for(let j = 0; j < update.bezier_curves.length; j++){
                 let curve = update.bezier_curves[j];
 
@@ -536,15 +564,55 @@ const initRenderer = (function(canvas, options={}) {
 
             }
 
+         //   console.log(`Buffer offset: ${data.offsets[shape_id]}, index offset: ${data.index_offsets[shape_id]} for shape${shape_id}`);
 
-            if(update.type === "morph") data.shapes[shape_id].contour_lengths = update.contour_lengths;
+            offset = data.index_offsets[shape_id];
+
+            if(update.type === "morph") {
+
+                let this_offset = 0;
+
+                for(let j =0; j < shape.contour_lengths.length; j++){
+
+                    let l = num_bezier_vertices*shape.contour_lengths[j];
+
+                    if(l > 0){
+                        array_index[offset + this_offset + l] =  offset + this_offset + l;
+                        this_offset +=l;
+                    }
+                }
+
+
+                this_offset = 0;
+
+                for(let j =0; j < update.contour_lengths.length; j++){
+
+                    let l = num_bezier_vertices*update.contour_lengths[j];
+
+                    if(l > 0){
+                        array_index[offset + this_offset + l] = 0xffffffff;
+                        this_offset +=l;
+                    }
+                }
+
+              //  array_index[offset + num_bezier_vertices*shape.max_curves] = 0xffffffff;
+
+                data.foreground_shapes[shape_id].contour_lengths = update.contour_lengths;
+
+
+            }
 
         });
 
 
-        gl.texSubImage2D(gl.TEXTURE_2D, 0, 0 , 0,data.bezier_array_size, data.bezier_array_size,  gl.RGBA, gl.UNSIGNED_BYTE, data.bezier_buffer);
+
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, data.bezier_array_size, data.bezier_array_size, 0, gl.RGBA, gl.UNSIGNED_BYTE, data.bezier_buffer);
 
 
+
+        //gl.texSubImage2D(gl.TEXTURE_2D, 0, 0 , 0,data.bezier_array_size, data.bezier_array_size,  gl.RGBA, gl.UNSIGNED_BYTE, data.bezier_buffer, 0);
+
+        gl.bufferSubData(gl.ELEMENT_ARRAY_BUFFER, 0, array_index, 0, array_index.length);
 
 
 
@@ -598,7 +666,7 @@ const initRenderer = (function(canvas, options={}) {
 
         }
 
-        gl.flush();
+
     }
 
     function step() {
