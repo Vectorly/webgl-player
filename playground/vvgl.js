@@ -409,9 +409,9 @@ const initRenderer = (function(canvas, options={}) {
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, element_array_index_buffer);
         gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, array_index, gl.STATIC_DRAW);
 
+        data.index_buffer = element_array_index_buffer;
 
-        console.log(`Num shapes`);
-        console.log(data.shapes.length);
+
 
 
         const num_buckets = 100;
@@ -420,8 +420,7 @@ const initRenderer = (function(canvas, options={}) {
 
         const shapes_per_bucket = Math.ceil(data.shapes.length / num_buckets);
 
-        console.log(`Shapes per bucket`);
-        console.log(shapes_per_bucket);
+
         const bucket_lengths = new Array(num_buckets);
 
         for(let i = 0; i < num_buckets; i++){
@@ -457,7 +456,9 @@ const initRenderer = (function(canvas, options={}) {
 
     function load(json) {
 
-        json.shapes = shuffle(json.shapes);
+
+        console.log(json);
+        json.shapes = json.background_shapes;
 
         data.shapes = json.shapes;
         data.num_bezier_curves = json.num_bezier_curves;
@@ -469,6 +470,12 @@ const initRenderer = (function(canvas, options={}) {
     function update(time) {
 
         frame ++;
+
+
+    //    for(let i =0; i < 100; i++){
+        gl.bufferSubData(gl.ELEMENT_ARRAY_BUFFER, 0, array_index, 0, array_index.length*.1);
+      //  }
+
 
         return null;
 
@@ -594,24 +601,6 @@ const initRenderer = (function(canvas, options={}) {
     };
 
 
-    function shuffle(array) {
-        var currentIndex = array.length, temporaryValue, randomIndex;
-
-        // While there remain elements to shuffle...
-        while (0 !== currentIndex) {
-
-            // Pick a remaining element...
-            randomIndex = Math.floor(Math.random() * currentIndex);
-            currentIndex -= 1;
-
-            // And swap it with the current element.
-            temporaryValue = array[currentIndex];
-            array[currentIndex] = array[randomIndex];
-            array[randomIndex] = temporaryValue;
-        }
-
-        return array;
-    }
 
 
 });

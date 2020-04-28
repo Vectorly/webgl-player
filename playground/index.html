@@ -44,12 +44,17 @@ const renderer = initRenderer("glcanvas");
 loadJSON("data.json", function (json) {
 
 
-    const shapes = json.shapes;
+    const foreground_shapes = json.foreground_shapes;
+    const background_shapes = json.background_shapes;
+
     const updates = json.updates;
 
 
     let number_lines = 0;
-    shapes.forEach(function (shape) {
+    foreground_shapes.forEach(process);
+    background_shapes.forEach(process);
+
+    function process(shape) {
 
 
         let contour_lengths = [];
@@ -107,7 +112,7 @@ loadJSON("data.json", function (json) {
 
 
 
-    });
+    }
 
 
 
@@ -122,8 +127,8 @@ loadJSON("data.json", function (json) {
 
             if(update.type === "hide") return null;
             if(update.type === "show") {
-                update.contour_lengths = shapes[update.i].contour_lengths;
-                update.bezier_curves = shapes[update.i].bezier_curves;
+                update.contour_lengths = foreground_shapes[update.i].contour_lengths;
+                update.bezier_curves = foreground_shapes[update.i].bezier_curves;
                 return null;
             }
 
@@ -182,7 +187,8 @@ loadJSON("data.json", function (json) {
 
 
     renderer.load({
-        shapes: shapes,
+        foreground_shapes: foreground_shapes,
+        background_shapes: background_shapes,
         updates: updates,
         num_bezier_curves: json.num_curves
     });
