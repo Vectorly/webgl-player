@@ -579,15 +579,9 @@ const initRenderer = (function(canvas, options={}) {
         });
 
 
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, data.bezier_array_size, data.bezier_array_size, 0, gl.RGBA, gl.UNSIGNED_BYTE, data.bezier_buffer);
+        gl.texSubImage2D(gl.TEXTURE_2D, 0, 0 , 0,data.bezier_array_size, data.bezier_array_size,  gl.RGBA, gl.UNSIGNED_BYTE, data.bezier_buffer, 0);
 
-
-
-        //gl.texSubImage2D(gl.TEXTURE_2D, 0, 0 , 0,data.bezier_array_size, data.bezier_array_size,  gl.RGBA, gl.UNSIGNED_BYTE, data.bezier_buffer, 0);
-
-        gl.bufferSubData(gl.ELEMENT_ARRAY_BUFFER, 0, array_index, 0, array_index.length);
-
-
+        gl.bufferSubData(gl.ELEMENT_ARRAY_BUFFER, 0, array_index, 0, data.foreground_length);
 
 
     }
