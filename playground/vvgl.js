@@ -127,7 +127,7 @@ const initRenderer = (function(canvas, options={}) {
     function initBuffers() {
 
 
-        let step = 10;
+        let step = 40;
 
         const t_array = [];
 
