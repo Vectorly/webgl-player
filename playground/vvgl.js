@@ -74,26 +74,29 @@ const initRenderer = (function(canvas, options={}) {
             "attribute vec4 t_vector;",
             "attribute vec4 x_vector;",
             "attribute vec4 y_vector;",
-            "attribute vec3 color;",
-            "attribute vec2 offset;",
+           // "attribute vec3 color;",
+           // "attribute vec2 offset;",
 
             "uniform vec2 resolution;",
-            "varying highp vec3 vColor;",
+           // "varying highp vec3 vColor;",
 
             "void main(void) {",
 
+            "float x = 2.0*(dot(t_vector, x_vector) + 500.0)/resolution[0] - 1.0;",
+            "float y = 2.0*(dot(t_vector, y_vector) + 500.0)/resolution[1] - 1.0;",
+/*
                 "float x = 2.0*(dot(t_vector, x_vector) + offset[0])/resolution[0] - 1.0;",
                 "float y = 2.0*(dot(t_vector, y_vector) + offset[1])/resolution[1] - 1.0;",
-                "vColor = color;",
+                "vColor = color;",*/
                 "gl_Position = vec4(x, y, 0, 1);",
             "}"
         ].join("\n"));
 
 
         let gFragmentShader = createAndCompileShader(gl.FRAGMENT_SHADER, [
-            "varying highp vec3 vColor;",
+           // "varying highp vec3 vColor;",
             "void main(void) {",
-            "gl_FragColor = vec4(1.0, vColor.y*0.01, 0.5, 1.0);",
+            "gl_FragColor = vec4(1.0, 0.0, 0.5, 1.0);",
             "}"
         ].join("\n"));
 
@@ -108,7 +111,9 @@ const initRenderer = (function(canvas, options={}) {
 
 
         const uniforms = ["resolution"];
-        const attributes = ["t_vector", "x_vector", "y_vector", "color", "offset"];
+   //     const attributes = ["t_vector", "x_vector", "y_vector", "color", "offset"];
+
+        const attributes = ["t_vector", "x_vector", "y_vector"];
 
         uniforms.forEach(key => locations[key] = gl.getUniformLocation(program, key));
         attributes.forEach(key => locations[key] = gl.getAttribLocation(program, key));
@@ -196,7 +201,7 @@ const initRenderer = (function(canvas, options={}) {
 
             offsets[i] = offset;
 
-            for(let j = 0; j < shape.bezier_curves.length; j++){
+            for(let j = 0; j < 1; j++){
                 let curve = shape.bezier_curves[j];
 
                 let idx = offset + j*13;
@@ -221,13 +226,13 @@ const initRenderer = (function(canvas, options={}) {
 
             for(let j = 0; j < shape.bezier_curves.length; j++){
                 let curve = shape.bezier_curves[j];
-                let idx = offset + j*13;
+                let idx = offset + j*8;
                 bezier_buffer_data.set(curve, idx);
-                bezier_buffer_data.set(shape.data, idx+8);
+             //   bezier_buffer_data.set(shape.data, idx+8);
                 curves++;
             }
 
-            offset += 13*shape.max_curves;
+            offset += 8*shape.max_curves;
 
         }
 
@@ -242,35 +247,41 @@ const initRenderer = (function(canvas, options={}) {
         const x_buffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, x_buffer);
         gl.bufferData(gl.ARRAY_BUFFER, bezier_buffer_data, gl.DYNAMIC_DRAW);
-        gl.vertexAttribPointer(locations["x_vector"], 4, gl.FLOAT, false, 52, 0);
-       // gl.vertexAttribDivisor(x_buffer, 1);
+        gl.vertexAttribPointer(locations["x_vector"], 4, gl.FLOAT, false, 0, 0);
+        gl.vertexAttribDivisor(x_buffer, 1);
 
 
         const y_buffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, y_buffer);
         gl.bufferData(gl.ARRAY_BUFFER, bezier_buffer_data, gl.DYNAMIC_DRAW);
-        gl.vertexAttribPointer(locations["y_vector"], 4, gl.FLOAT, false, 52, 16);
-     //   gl.vertexAttribDivisor(y_buffer, 1);
-
+        gl.vertexAttribPointer(locations["y_vector"], 4, gl.FLOAT, false, 0, 16);
+        gl.vertexAttribDivisor(y_buffer, 1);
+        /*
         const offset_buffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, offset_buffer);
         gl.bufferData(gl.ARRAY_BUFFER, bezier_buffer_data, gl.DYNAMIC_DRAW);
-        gl.vertexAttribPointer(locations["offset"], 4, gl.FLOAT, false, 52, 32);
-       // gl.vertexAttribDivisor(offset_buffer, 1);
+        gl.vertexAttribPointer(locations["offset"], 4, gl.FLOAT, false, 0, 32);
+        gl.vertexAttribDivisor(offset_buffer, 1);
 
         const color_buffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, color_buffer);
         gl.bufferData(gl.ARRAY_BUFFER, bezier_buffer_data, gl.DYNAMIC_DRAW);
-        gl.vertexAttribPointer(locations["color"], 4, gl.FLOAT, false, 52, 40);
-      //  gl.vertexAttribDivisor(color_buffer, 1);
+        gl.vertexAttribPointer(locations["color"], 4, gl.FLOAT, false, 0, 40);
+        gl.vertexAttribDivisor(color_buffer, 1);
 
 
-
+*/
 
         data.bezier_buffer = bezier_buffer_data;
 
 
 
+        console.log(`Num bezier vertices`);
+        console.log(num_bezier_vertices);
+
+
+        console.log(`Bezier buffer data`);
+        console.log(bezier_buffer_data);
         offset = 0;
 
 
@@ -496,8 +507,8 @@ const initRenderer = (function(canvas, options={}) {
             gl.colorMask(true, true, true, true);
 
             console.log(`Making a call for i ${i}, length: ${num_bezier_vertices}, offset: ${offset}, instances: ${data.bucket_lengths} `);
-
             gl.drawArrays(gl.LINES,  0, num_bezier_vertices);
+          //  gl.drawArraysInstanced(gl.LINES,  0, num_bezier_vertices, 1);
             //gl.drawArraysInstanced(gl.LINES,  offset, num_bezier_vertices, data.bucket_lengths[i]);
           //  gl.drawElementsInstanced(gl.LINES,  num_bezier_vertices,  gl.UNSIGNED_INT, offset, data.bucket_lengths[i]);
 
