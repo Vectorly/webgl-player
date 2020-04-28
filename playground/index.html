@@ -74,19 +74,17 @@ loadJSON("data.json", function (json) {
                 if(contour[j].length ===4) {
                     number_lines++;
 
-                    curve = [contour[j][0], contour[j][1],  contour[j][0], contour[j][1], contour[j][2], contour[j][3], contour[j][2], contour[j][3]];
+                    curve = [contour[j][0], contour[j][0],  contour[j][2], contour[j][2], contour[j][1], contour[j][1], contour[j][3], contour[j][3]];
 
                 } else{
-                    curve = contour[j];
+                    curve = [contour[j][0], contour[j][2],  contour[j][4], contour[j][6], contour[j][1], contour[j][3], contour[j][5], contour[j][7]];
                 }
 
 
                 let curve_points = [];
 
                 for(let k = 0; k < 8; k++){
-                    let packed = packInt16(curve[k]);
-                    curve_points.push(packed[0], packed[1]);
-
+                    curve_points.push(curve[k]);
                 }
 
 
@@ -100,10 +98,8 @@ loadJSON("data.json", function (json) {
         }
 
 
-        let xpacked = packInt16(shape.xy[0]);
-        let ypacked = packInt16(shape.xy[1]);
 
-        shape.data = [xpacked[0], xpacked[1], ypacked[0], ypacked[1], shape.color[0], shape.color[1], shape.color[2]];
+        shape.data = [shape.xy[0], shape.xy[1],  shape.color[0], shape.color[1], shape.color[2]];
 
 
 
@@ -148,26 +144,23 @@ loadJSON("data.json", function (json) {
                     if(contour[j].length ===4) {
                         number_lines++;
 
-                        curve = [contour[j][0], contour[j][1],  contour[j][0], contour[j][1], contour[j][2], contour[j][3], contour[j][2], contour[j][3]];
+                        curve = [contour[j][0], contour[j][0],  contour[j][2], contour[j][2], contour[j][1], contour[j][1], contour[j][3], contour[j][3]];
 
                     } else{
-                        curve = contour[j];
+                        curve = [contour[j][0], contour[j][2],  contour[j][4], contour[j][6], contour[j][1], contour[j][3], contour[j][5], contour[j][7]];
                     }
 
 
                     let curve_points = [];
 
                     for(let k = 0; k < 8; k++){
-                        let packed = packInt16(curve[k]);
-                        curve_points.push(packed[0], packed[1]);
-
+                        curve_points.push(curve[k]);
                     }
 
 
                     if(curve_points.length  > 0){
                         bezier_curves.push(curve_points);
                     }
-
 
                 }
 
