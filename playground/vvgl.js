@@ -308,13 +308,7 @@ const initRenderer = (function(canvas, options={}) {
     function setBezierTexture(json) {
 
 
-
-
-
-        let shapes = json.shapes;
-        let total_bezier_curves = json.num_bezier_curves;
-
-
+        const total_bezier_curves = json.num_bezier_curves;
         const bezierTexture = gl.createTexture();
         gl.activeTexture(gl.TEXTURE1);
         gl.bindTexture(gl.TEXTURE_2D, bezierTexture);
@@ -328,19 +322,19 @@ const initRenderer = (function(canvas, options={}) {
         const bezier_buffer_data = new Uint8Array(bezier_array_size*bezier_array_size*4);
 
 
+
+        const foreground_shapes = json.foreground_shapes;
+        const background_shapes = json.background_shapes;
         let offset = 0;
         let curves = 0;
 
 
-        const offsets = new Array(shapes.length);
+        const offsets = new Array(foreground_shapes.length);
 
 
+        for(let i =0; i <foreground_shapes.length; i++){
 
-
-
-        for(let i =0; i <shapes.length; i++){
-
-            let shape = shapes[i];
+            let shape = foreground_shapes[i];
 
             offsets[i] = offset;
 
@@ -360,8 +354,25 @@ const initRenderer = (function(canvas, options={}) {
 
         }
 
-
         data.offsets = offsets;
+
+
+        for(let i =0; i <background_shapes.length; i++){
+
+            let shape = background_shapes[i];
+
+            for(let j = 0; j < shape.bezier_curves.length; j++){
+                let curve = shape.bezier_curves[j];
+                let idx = offset + j*24;
+                bezier_buffer_data.set(curve, idx);
+                bezier_buffer_data.set(shape.data, idx+16);
+                curves++;
+            }
+
+            offset += 24*shape.max_curves;
+
+        }
+
 
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
@@ -379,9 +390,9 @@ const initRenderer = (function(canvas, options={}) {
         offset = 0;
 
 
-        for(let i =0; i <shapes.length; i++){
+        for(let i =0; i <foreground_shapes.length; i++){
 
-            let shape = shapes[i];
+            let shape = foreground_shapes[i];
 
             let this_offset = 0;
 
@@ -390,8 +401,6 @@ const initRenderer = (function(canvas, options={}) {
                 let l = num_bezier_vertices*shape.contour_lengths[j];
 
                 if(l > 0){
-
-
                     array_index[offset + this_offset + l] = 0xffffffff;
                     this_offset +=l;
                 }
@@ -400,8 +409,32 @@ const initRenderer = (function(canvas, options={}) {
 
             offset += num_bezier_vertices*shape.max_curves;
             array_index[offset] = 0xffffffff;
-
         }
+
+        data.foreground_length = JSON.parse(JSON.stringify(offset));
+
+
+        for(let i =0; i <background_shapes.length; i++){
+
+            let shape = background_shapes[i];
+
+            let this_offset = 0;
+
+            for(let j =0; j < shape.contour_lengths.length; j++){
+
+                let l = num_bezier_vertices*shape.contour_lengths[j];
+
+                if(l > 0){
+                    array_index[offset + this_offset + l] = 0xffffffff;
+                    this_offset +=l;
+                }
+
+            }
+
+            offset += num_bezier_vertices*shape.max_curves;
+            array_index[offset] = 0xffffffff;
+        }
+
 
 
 
@@ -412,14 +445,13 @@ const initRenderer = (function(canvas, options={}) {
         data.index_buffer = element_array_index_buffer;
 
 
-
-
         const num_buckets = 100;
 
         data.num_buckets = num_buckets;
 
-        const shapes_per_bucket = Math.ceil(data.shapes.length / num_buckets);
+        const shapes = [...foreground_shapes, ...background_shapes];
 
+        const shapes_per_bucket = Math.ceil(shapes.length / num_buckets);
 
         const bucket_lengths = new Array(num_buckets);
 
@@ -428,11 +460,11 @@ const initRenderer = (function(canvas, options={}) {
             let shapes_in_this_bucket;
 
             if (i === num_buckets- 1){
-                shapes_in_this_bucket = data.shapes.slice(i*shapes_per_bucket);
+                shapes_in_this_bucket = shapes.slice(i*shapes_per_bucket);
 
             } else{
 
-                shapes_in_this_bucket = data.shapes.slice(i*shapes_per_bucket, (i+1)*shapes_per_bucket);
+                shapes_in_this_bucket = shapes.slice(i*shapes_per_bucket, (i+1)*shapes_per_bucket);
             }
 
             let curves_this_shape = 0;
@@ -456,11 +488,8 @@ const initRenderer = (function(canvas, options={}) {
 
     function load(json) {
 
-
-        console.log(json);
-        json.shapes = json.background_shapes;
-
-        data.shapes = json.shapes;
+        data.foreground_shapes = json.foreground_shapes;
+        data.background_shapes = json.background_shapes;
         data.num_bezier_curves = json.num_bezier_curves;
         data.updates = json.updates;
 
@@ -473,7 +502,7 @@ const initRenderer = (function(canvas, options={}) {
 
 
     //    for(let i =0; i < 100; i++){
-        gl.bufferSubData(gl.ELEMENT_ARRAY_BUFFER, 0, array_index, 0, array_index.length*.1);
+        //gl.bufferSubData(gl.ELEMENT_ARRAY_BUFFER, 0, array_index, 0, array_index.length*.1);
       //  }
 
 
@@ -557,7 +586,6 @@ const initRenderer = (function(canvas, options={}) {
 
         for(let i =0; i <  data.num_buckets; i++){
 
-            let shape = data.shapes[i];
             gl.stencilFunc(gl.EQUAL, i+1 , 0xff);
             gl.stencilMask(i+1);
             gl.depthMask(false);
