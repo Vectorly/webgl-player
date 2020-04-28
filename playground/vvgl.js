@@ -197,14 +197,14 @@ const initRenderer = (function(canvas, options={}) {
 
         const offsets = new Array(foreground_shapes.length);
 
-/*
+
         for(let i =0; i <foreground_shapes.length; i++){
 
             let shape = foreground_shapes[i];
 
             offsets[i] = offset;
 
-            for(let j = 0; j < 1; j++){
+            for(let j = 0; j < shape.bezier_curves.length; j++){
                 let curve = shape.bezier_curves[j];
 
                 let idx = offset + j*13;
@@ -221,7 +221,7 @@ const initRenderer = (function(canvas, options={}) {
         }
 
 
-        */
+
         data.offsets = offsets;
 
 
@@ -243,10 +243,6 @@ const initRenderer = (function(canvas, options={}) {
 
 
 
-
-
-        console.log("Bezier buffer data");
-        console.log(bezier_buffer_data);
 
 
 
@@ -281,9 +277,6 @@ const initRenderer = (function(canvas, options={}) {
      //   data.bezier_buffer = bezier_buffer_data;
 
 
-
-        console.log(`Num bezier vertices`);
-        console.log(num_bezier_vertices);
 
 
       //  console.log(`Bezier buffer data`);
@@ -352,7 +345,7 @@ const initRenderer = (function(canvas, options={}) {
 
         data.index_buffer = element_array_index_buffer;
 
-        const num_buckets = 1;
+        const num_buckets = 10;
 
         data.num_buckets = num_buckets;
 
@@ -397,8 +390,6 @@ const initRenderer = (function(canvas, options={}) {
 
     function load(json) {
 
-        json.foreground_shapes = [];
-        json.background_shapes = json.background_shapes.slice(0, 100);
 
         data.foreground_shapes = json.foreground_shapes;
         data.background_shapes = json.background_shapes;
@@ -505,6 +496,12 @@ const initRenderer = (function(canvas, options={}) {
         let l = 0;
 
 
+
+
+        console.log(`Number of bezier curves: ${data.num_bezier_curves}`);
+        gl.drawArraysInstanced(gl.LINES,  offset, num_bezier_vertices, data.num_bezier_curves-1);
+
+/*
         for(let i =0; i < data.num_buckets; i++){
 
             gl.stencilFunc(gl.ALWAYS, (i+1) , 0xff);
@@ -517,13 +514,13 @@ const initRenderer = (function(canvas, options={}) {
             //gl.drawArraysInstanced(gl.TRIANGLE_FAN,  0, num_bezier_vertices, data.bucket_lengths[i]);
 
 
-            //gl.drawArraysInstanced(gl.LINES,  offset, num_bezier_vertices, data.bucket_lengths[i]);
-            gl.drawElementsInstanced(gl.LINES,  num_bezier_vertices,  gl.UNSIGNED_INT, offset, data.bucket_lengths[i]);
 
-          //  offset += data.bucket_lengths[i]*4;
+          //  gl.drawElementsInstanced(gl.LINES,  num_bezier_vertices,  gl.UNSIGNED_INT, offset, data.bucket_lengths[i]);
+
+            //offset += data.bucket_lengths[i];
 
         }
-
+*/
 /*
 
         gl.stencilOp(gl.KEEP, gl.KEEP, gl.KEEP);
