@@ -346,11 +346,11 @@ const initRenderer = (function(canvas, options={}) {
 
 
 
-    //    const element_array_index_buffer = gl.createBuffer();
-   //     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, element_array_index_buffer);
-     //   gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, array_index, gl.STATIC_DRAW);
+        const element_array_index_buffer = gl.createBuffer();
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, element_array_index_buffer);
+        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, array_index, gl.STATIC_DRAW);
 
-      //  data.index_buffer = element_array_index_buffer;
+        data.index_buffer = element_array_index_buffer;
 
         const num_buckets = 1;
 
@@ -514,11 +514,11 @@ const initRenderer = (function(canvas, options={}) {
 
             console.log(`Making a call for i ${i}, length: ${num_bezier_vertices}, offset: ${offset}, instances: ${data.bucket_lengths[i]} `);
          //   gl.drawArrays(gl.LINES,  0, num_bezier_vertices);
-            gl.drawArraysInstanced(gl.LINES,  0, num_bezier_vertices, data.bucket_lengths[i]);
+            //gl.drawArraysInstanced(gl.TRIANGLE_FAN,  0, num_bezier_vertices, data.bucket_lengths[i]);
 
 
             //gl.drawArraysInstanced(gl.LINES,  offset, num_bezier_vertices, data.bucket_lengths[i]);
-          //  gl.drawElementsInstanced(gl.LINES,  num_bezier_vertices,  gl.UNSIGNED_INT, offset, data.bucket_lengths[i]);
+            gl.drawElementsInstanced(gl.LINES,  num_bezier_vertices,  gl.UNSIGNED_INT, offset, data.bucket_lengths[i]);
 
           //  offset += data.bucket_lengths[i]*4;
 
