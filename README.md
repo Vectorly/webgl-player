@@ -65,9 +65,29 @@ Of course, while the points are actual numbers, a,b,c,d are just functions of t.
 
 ![](docs/linalg3.gif)
 
-Here, each value in the matrices is now a concrete number, which can be multiplied. To be even more expicit, the equation B(t) now results in a vector of the different points along the bezier curve
+Here, each value in the matrices is now a concrete number. To be even more explicit, the equation B(t) now results in a vector of the different points along the bezier curve
 
 ![](docs/linalg4.gif)
+
+Finally, remember that a, b, c and d are just functions of t, and aren't dependent on the control points. The a,b,c,d matrix therefore doesn't change between bezier curves, and you can therefore consider it a constant
+
+![](docs/t.gif)
+
+Every bezier curve, therefore, can be calculated by multiplying the 4 control points by a constant matrix T
+
+![](docs/linalg5.gif)
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
