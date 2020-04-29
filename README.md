@@ -77,8 +77,7 @@ Every bezier curve, therefore, can be calculated by multiplying the 4 control po
 
 ![](docs/linalg5.gif)
 
-
-
+In this way, you can feed hundreds of thousands of bezier curves to the GPU in parallel, and it will output millions of vertex points efficiently (in less than 1 ms), becuase it's just about multiplying 10^5 vectors by a constant matrix
 
 
 
