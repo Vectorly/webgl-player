@@ -92,6 +92,25 @@ The non-obvious solution is to use a neat feature of geometry theory: For any ar
 
 where the triangles in triangle fan are 1-2-3, 1-3-4, 1-4-5, 1-5-6 and 1-6-7, the areas inside the polygon will be covered by an odd number of triangles. The areas outside the polygon will be covered by an even number of triangles.
 
+This neat quirk lets you take advantage of 2 OpenGL/WebGL features to draw any closed 2d shape:
+* Triangle Fans
+* Stencil Buffers
+
+For the stencil buffer, you can use the Stencil mask function to mark any pixel with an 8-bit id without drawing it. You can also use the Stencil INVERT function to do a bitwise flip of any pixel drawn by a triangle, and the stencil test to draw only draw triangles on pixels where the stencil id is equal to a certain value.
+
+What you can do therefore, is to draw a triangle fan for every polygon, using the stencil mask to set the pixels to a given id, and the stencil invert function to flip the pixel ids every time a triangle is drawn. Because of the neat quirk mentioned above, every pixel inside the polygon will have the same stencil id, and everything outside the polygon will remain unaffected, because they will have undergone an even number of inverts.
+
+This idea comes from the [GL Programming textbook](http://www.glprogramming.com/red/chapter14.html#name13), which you can look at for reference.
+
+
+**Drawing everything on the GPU**
+
+If you understand both points of theory above, the algorithm from here is exceedingly simple. Every shape is a series of bezier curves. For each shape, you supply a list of the bezier curve control points, and the GPU will calculate the points along each bezier curve. These points are now the vertices of a very complex polygon, and you do the stencil buffer method mentioned above to get an individual shape
+
+
+
+
+
 
 
 
