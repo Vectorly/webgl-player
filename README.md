@@ -53,13 +53,28 @@ You can substitute the t-values with easier to read variables
 
 The bezier curve equation then becomes
 
-![linalg1](docs/linalg1.gif)
+![](docs/linalg1.gif)
 
 Of course, a,b,c,d are still functions of t, but they now look more like linear algebra equations.
 
-You can now treat the bezier equation as vector multiplication, as below
+You can now treat the bezier equation as matrix multiplication, as below
 
-![linalg1](docs/linalg2.gif)
+![](docs/linalg2.gif)
+
+Of course, while the points are actual numbers, a,b,c,d are just functions of t. The key here is to now evaluate a,b,c and d for different values of t, from 0 to 1
+
+![](docs/linalg3.gif)
+
+Here, each value in the matrices is now a concrete number, which can be multiplied. To be even more expicit, the equation B(t) now results in a vector of the different points along the bezier curve
+
+![](docs/linalg4.gif)
+
+
+
+
+
+
+
 
 
 
