@@ -14,12 +14,12 @@ const S3Plugin = require('webpack-s3-plugin');
 const fs = require('fs');
 
 
-console.log('LRNFILE', process.env.LRNFILE, path.basename(process.env.LRNFILE || ''));
-if (process.env.LRNFILE === undefined) {
-  console.log('No LRNFILE variable set. Use command as (PUSHTAG optional):  LRNFILE=<path-to-lrn> PUSHTAG=<some-tag> yarn demo');
+console.log('JSONFILE', process.env.JSONFILE, path.basename(process.env.JSONFILE || ''));
+if (process.env.JSONFILE === undefined) {
+  console.log('No JSONFILE variable set. Use command as (PUSHTAG optional):  JSONFILE=<path-to-lrn> PUSHTAG=<some-tag> yarn demo');
   process.exit(1)
-} else if (!fs.existsSync(process.env.LRNFILE)) {
-  console.log('Invalid LRNFILE variable set. File doesnot exist', process.env.LRNFILE);
+} else if (!fs.existsSync(process.env.JSONFILE)) {
+  console.log('Invalid JSONFILE variable set. File doesnot exist', process.env.JSONFILE);
   process.exit(1)
 }
 console.log('PUSHTAG', process.env.PUSHTAG);
@@ -48,7 +48,7 @@ module.exports = merge(baseConfig, {
       template: 'src/demo/index.html',
       // title: 'HTML Webpack Plugin',
       // bar: 'bar',
-      lrnFileName: path.basename(process.env.LRNFILE),
+      JSONFILEName: path.basename(process.env.JSONFILE),
       mp4FileName: function() {
         try{
           return path.basename(process.env.MP4FILE)
@@ -60,7 +60,7 @@ module.exports = merge(baseConfig, {
     }),
     new CopyWebpackPlugin(function() {
       files = [
-        {from: process.env.LRNFILE, to: path.basename(process.env.LRNFILE)}
+        {from: process.env.JSONFILE, to: path.basename(process.env.JSONFILE)}
       ];
       try {
         files.push({
@@ -76,7 +76,7 @@ module.exports = merge(baseConfig, {
   devServer: {
     before: function(app, server, compiler) {
       bonjour.publish({
-        name: process.env.LRNFILE,
+        name: process.env.JSONFILE,
         port: this.port,
         type: 'http',
         subtypes: [ 'webpack' ]
