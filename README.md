@@ -105,34 +105,47 @@ This idea comes from the [GL Programming textbook](http://www.glprogramming.com/
 
 **Drawing everything on the GPU**
 
-If you understand both points of theory above, the algorithm from here is exceedingly simple. Every shape is a series of bezier curves. For each shape, you supply a list of the bezier curve control points, and the GPU will calculate the points along each bezier curve. These points are now the vertices of a very complex polygon, and you do the stencil buffer method mentioned above to get an individual shape
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+If you understand both points of theory above, the algorithm from here is exceedingly simple. Every shape is a series of bezier curves. For each shape, you supply a list of the bezier curve control points, and the GPU will calculate n points along each bezier curve. These points are now the vertices of a very complex polygon, and you do the stencil buffer method mentioned above to paint only the areas inside the shape.
 
 
 ## Implementation
 
+To implement the theory above, there are some specific functions of WebGL to make sure to understand
+
+**Textures**
+
+In any given frame, there are about ~10^4 shapes and ~10^5 bezier curves. Rendering each shape (let alone each curve) individually therefore requires thousands of calls to the GPU, and lots of data back and forth.
+
+Communication between the GPU and CPU is by far the biggest bottleneck when working with WebGL, so the idea is to minimize data transfer between the CPU and the GPU.
+
+The solution is to send all the bezier curves at once. To do this, you use a [texture](https://webglfundamentals.org/webgl/lessons/webgl-3d-textures.html), which is a fancy word for an embedded image
+
+Here, you encode bezier coordinants as pixel rgba pixel values. In the GPU shader program, you read individual pixel values as if they were entries in a large table, and then you parse them to get the required pixel information.
+
+Sending the bezier curves all at once, you could theoretically render the scene in 2 draw calls (instead of thousands), and any overhead in terms of parsing pixel values on the GPU is vastly outweighed by the reduction in CPU/GPU communication.
+
+
+**Stencil**
+
+By theoretically, you might have gotten that things are being drawn in more than 2 draw calls. One of the major downsides of using the stencil-invert technique is shape interference, which happens when the different triangle fans of different shapes start to paint over each other.
+
+The way around this is to use the stencil mask function, and draw different shapes using different stencil mask values (can be anything from 0 to 255). This prevents shape interference at the cost of requiring more draw calls.
+
+For efficiency, we randomly assign shapes into stencil 'buckets', so that each shape in a bucket is drawn with a single stencil mask value.
+
+You can therefore decide how many different stencil masks you want: If you do 255, every scene will require 510 draw calls. If you chose 20, every scene will have 40 draw calls. Shape interference seems to become minimal at around 100 stencil buckets. You can visualize interference by changing the "num_buckets" variable in the setBezierTexture function
+
+
+## Results
+
+https://files.vectorly.io/demo/webgl-player/2/index.html
+
 
 ## Issues
 
+There are still some key issues to tackle.
 
-https://github.com/Vectorly/web-gl-experiments/tree/master/full_frame_holes
+* Some curves still show mysterious black spots or black zones, which may or may not be due to shape interference
+* Using Chromes performance monitor shows periodic spikes in GPU usage even on frames where nothing is happening. The framreate also mysteriously drops to 30fps and rises to 60fps, again even when nothing new is being rendered
+* There may be a more efficient way of rendering than using textures, by taking advantage of Instanced Arrays, but initial investigations indicate there's not an easy way of connecting bezier curves together into a single polygon
+* TODO: Add support for homography
