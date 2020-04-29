@@ -41,14 +41,21 @@ To understand how the WebGL player works at a theory level, you only need to kno
 * How to render a bezier curve using linear algebra
 * How to render complex polygons as a series of triangles
 
-**Bezier Curves**
+**Bezier Curves as Linear Algebra**
 
 The formula for a cubic Bezier curve is as follows
 
 ![bezier](docs/bezier.svg)
 
+You can substitute the t-values with easier to read variables
 
+![bezier](docs/coefficients.svg)
 
+The bezier curve equation then becomes
+
+![bezier](docs/linalg1.svg)
+
+## Implementation
 
 
 ## Issues
