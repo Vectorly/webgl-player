@@ -53,7 +53,15 @@ You can substitute the t-values with easier to read variables
 
 The bezier curve equation then becomes
 
-![bezier](docs/linalg1.svg =250x)
+![linalg1](docs/linalg1.gif)
+
+Of course, a,b,c,d are still functions of t, but they now look more like linear algebra equations.
+
+You can now treat the bezier equation as vector multiplication, as below
+
+![linalg1](docs/linalg2.gif)
+
+
 
 ## Implementation
 
