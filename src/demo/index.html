@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>WebGL Demo</title>
+    <script src="vvgl.js"></script>
+</head>
+<body>
+
+
+<canvas id="glcanvas" width="1920" height="1080" style="background: black;">
+    WebGL not supported!
+</canvas>
+
+
+<script>
+
+
+function packInt16(x) {
+
+
+    x = Math.abs(x);
+    const data = [0,0];
+
+    let div =  x/256;
+
+    data[0] = Math.floor(div);
+    data[1] = (div - data[0])*256;
+
+
+    return data;
+
+}
+
+
+
+
+
+
+
+const renderer = vvgl("glcanvas");
+
+
+loadJSON("data.json", function (json) {
+
+
+    const foreground_shapes = json.foreground_shapes;
+    const background_shapes = json.background_shapes;
+
+    const updates = json.updates;
+
+
+    let number_lines = 0;
+    foreground_shapes.forEach(process);
+    background_shapes.forEach(process);
+
+    function process(shape) {
+
+
+        let contour_lengths = [];
+        let bezier_curves = [];
+
+
+
+        for (let i =0; i < shape.contours.length; i++){
+
+            let contour = shape.contours[i];
+
+            contour_lengths.push(contour.length);
+            for(let j = 0; j < contour.length; j++ ){
+
+                let curve  = [];
+
+                if(contour[j].length ===4) {
+                    number_lines++;
+
+                    curve = [contour[j][0], contour[j][1],  contour[j][0], contour[j][1], contour[j][2], contour[j][3], contour[j][2], contour[j][3]];
+
+                } else{
+                    curve = contour[j];
+                }
+
+
+                let curve_points = [];
+
+                for(let k = 0; k < 8; k++){
+                    let packed = packInt16(curve[k]);
+                    curve_points.push(packed[0], packed[1]);
+
+                }
+
+
+                if(curve_points.length  > 0){
+                    bezier_curves.push(curve_points);
+                }
+
+
+            }
+
+        }
+
+
+        let xpacked = packInt16(shape.xy[0]);
+        let ypacked = packInt16(shape.xy[1]);
+
+        shape.data = [xpacked[0], xpacked[1], ypacked[0], ypacked[1], shape.color[0], shape.color[1], shape.color[2]];
+
+
+
+        shape.bezier_curves = bezier_curves;
+        shape.contour_lengths = contour_lengths;
+
+
+
+    }
+
+
+
+    updates.forEach(function (frame_update, frame_num) {
+
+
+
+        if(!frame_update) return null;
+
+        frame_update.forEach(function (update) {
+
+
+            if(update.type === "hide") return null;
+            if(update.type === "show") {
+                update.contour_lengths = foreground_shapes[update.i].contour_lengths;
+                update.bezier_curves = foreground_shapes[update.i].bezier_curves;
+                return null;
+            }
+
+
+            let contour_lengths = [];
+            let bezier_curves = [];
+
+            for (let i =0; i < update.contours.length; i++){
+
+                let contour = update.contours[i];
+
+                contour_lengths.push(contour.length);
+                for(let j = 0; j < contour.length; j++ ){
+
+                    let curve  = [];
+
+                    if(contour[j].length ===4) {
+                        number_lines++;
+
+                        curve = [contour[j][0], contour[j][1],  contour[j][0], contour[j][1], contour[j][2], contour[j][3], contour[j][2], contour[j][3]];
+
+                    } else{
+                        curve = contour[j];
+                    }
+
+
+                    let curve_points = [];
+
+                    for(let k = 0; k < 8; k++){
+                        let packed = packInt16(curve[k]);
+                        curve_points.push(packed[0], packed[1]);
+
+                    }
+
+
+                    if(curve_points.length  > 0){
+                        bezier_curves.push(curve_points);
+                    }
+
+
+                }
+
+            }
+
+
+            update.bezier_curves = bezier_curves;
+            update.contour_lengths = contour_lengths;
+
+
+        });
+
+
+    });
+
+
+
+
+    renderer.load({
+        foreground_shapes: foreground_shapes,
+        background_shapes: background_shapes,
+        updates: updates,
+        num_bezier_curves: json.num_curves
+    });
+
+
+
+    renderer.play();
+
+});
+
+
+
+
+
+
+function loadJSON(filename, callback) {
+
+
+    let oReq = new XMLHttpRequest();
+    oReq.onload = function (e) {
+
+        callback(JSON.parse(oReq.responseText));
+    };
+    oReq.open("GET", filename);
+    oReq.responseType = "text";
+    oReq.send();
+
+}
+
+</script>
+
+</body>
+</html>
