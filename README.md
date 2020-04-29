@@ -49,7 +49,7 @@ The formula for a cubic Bezier curve is as follows
 
 You can substitute the t-values with easier to read variables
 
-![bezier](docs/coefficients.svg ==250x)
+![coefficients](docs/coefficients.gif)
 
 The bezier curve equation then becomes
 
