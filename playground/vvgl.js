@@ -251,52 +251,12 @@ const initRenderer = (function(canvas, options={}) {
         gl.vertexAttribDivisor(locations["color"], 1);
 
 
-
-        const num_buckets = 10;
-
-        data.num_buckets = num_buckets;
-
-        const shapes = [...foreground_shapes, ...background_shapes];
-
-        const shapes_per_bucket = Math.ceil(shapes.length / num_buckets);
-
-        const bucket_lengths = new Array(num_buckets);
-
-        for(let i = 0; i < num_buckets; i++){
-
-            let shapes_in_this_bucket;
-
-            if (i === num_buckets- 1){
-                shapes_in_this_bucket = shapes.slice(i*shapes_per_bucket);
-
-            } else{
-
-                shapes_in_this_bucket = shapes.slice(i*shapes_per_bucket, (i+1)*shapes_per_bucket);
-            }
-
-            let curves_this_shape = 0;
-
-            shapes_in_this_bucket.forEach(function (shape) {
-                curves_this_shape +=shape.max_curves;
-            });
-
-
-            bucket_lengths[i] = curves_this_shape;
-
-        }
-
-
-
-
-        data.bucket_lengths = bucket_lengths;
-
     }
 
 
 
 
     function load(json) {
-
 
         data.foreground_shapes = json.foreground_shapes;
         data.background_shapes = json.background_shapes;
@@ -313,91 +273,12 @@ const initRenderer = (function(canvas, options={}) {
         return null;
 
 
-        const updates = data.updates[frame];
-
-        if(!updates) return null;
-
-        updates.forEach(function (update) {
-
-
-            let shape_id = update.i;
-
-
-            let shape = data.foreground_shapes[shape_id];
-
-            let offset = data.offsets[shape_id];
-
-
-            if(update.type === "hide") return data.bezier_buffer.fill(0, offset, offset + shape.max_curves*24);
-
-            data.bezier_buffer.fill(0, offset, offset + shape.max_curves*24);
-
-            for(let j = 0; j < update.bezier_curves.length; j++){
-                let curve = update.bezier_curves[j];
-
-                let idx = offset + j*24;
-
-                data.bezier_buffer.set(curve, idx);
-
-                data.bezier_buffer.set(shape.data, idx+16);
-
-            }
-
-
-            offset = data.index_offsets[shape_id];
-
-            if(update.type === "morph") {
-
-                let this_offset = 0;
-
-                for(let j =0; j < shape.contour_lengths.length; j++){
-
-                    let l = num_bezier_vertices*shape.contour_lengths[j];
-
-                    if(l > 0){
-                        array_index[offset + this_offset + l] =  offset + this_offset + l;
-                        this_offset +=l;
-                    }
-                }
-
-
-                this_offset = 0;
-
-                for(let j =0; j < update.contour_lengths.length; j++){
-
-                    let l = num_bezier_vertices*update.contour_lengths[j];
-
-                    if(l > 0){
-                        array_index[offset + this_offset + l] = 0xffffffff;
-                        this_offset +=l;
-                    }
-                }
-
-                array_index[offset] = 0xffffffff;
-
-                array_index[offset + num_bezier_vertices*shape.max_curves] = 0xffffffff;
-
-                data.foreground_shapes[shape_id].contour_lengths = update.contour_lengths;
-
-            }
-
-        });
-
-
-        gl.texSubImage2D(gl.TEXTURE_2D, 0, 0 , 0,data.bezier_array_size, data.bezier_array_size,  gl.RGBA, gl.UNSIGNED_BYTE, data.bezier_buffer, 0);
-
-        gl.bufferSubData(gl.ELEMENT_ARRAY_BUFFER, 0, array_index, 0, data.foreground_length);
-
-
     }
 
     function render() {
 
         gl.clearColor(0, 0, 0, 1.0);
         gl.clear( gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT);
-
-
-
 
         let offset = 0;
         let l = 0;
