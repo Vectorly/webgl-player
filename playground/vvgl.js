@@ -544,7 +544,7 @@ const initRenderer = (function(canvas, options={}) {
 
         for(let i =0; i < data.num_buckets; i++){
 
-            gl.stencilFunc(gl.EQUAL, (i+1) , 0xff);
+            gl.stencilFunc(gl.ALWAYS, (i+1) , 0xff);
             gl.stencilMask(i+1);
             gl.depthMask(false);
             gl.colorMask(false, false, false, false);
@@ -574,7 +574,7 @@ const initRenderer = (function(canvas, options={}) {
 
         offset = 0;
 
-        gl.stencilOp(gl.KEEP, gl.KEEP, gl.INVERT);
+        gl.stencilOp(gl.KEEP, gl.KEEP, gl.KEEP);
 
         for(let i =0; i < data.num_buckets; i++){
 
@@ -599,7 +599,7 @@ const initRenderer = (function(canvas, options={}) {
 
         for(let i =0; i < data.num_buckets; i++){
 
-            gl.stencilFunc(gl.EQUAL, 0 , 0xff);
+            gl.stencilFunc(gl.NOTEQUAL, 0 , 0xff);
             gl.stencilMask(255-(i+1));
             gl.depthMask(false);
             gl.colorMask(true, true, true, true);
