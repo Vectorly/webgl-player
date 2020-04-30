@@ -86,7 +86,7 @@ const initRenderer = (function(canvas, options={}) {
             "attribute vec2 offset;",
 
             "uniform vec2 resolution;",
-            "varying highp vec3 vColor;",
+            "varying lowp vec3 vColor;",
 
             "void main(void) {",
 
@@ -100,7 +100,7 @@ const initRenderer = (function(canvas, options={}) {
 
 
         let gFragmentShader = createAndCompileShader(gl.FRAGMENT_SHADER, [
-            "varying highp vec3 vColor;",
+            "varying lowp vec3 vColor;",
             "void main(void) {",
             "gl_FragColor = vec4(vColor.x, vColor.y, vColor.z, 1.0);",
             "}"
@@ -130,9 +130,9 @@ const initRenderer = (function(canvas, options={}) {
         ].join("\n"));
 
         let gFragmentShader = createAndCompileShader(gl.FRAGMENT_SHADER, [
-            "varying highp vec3 vColor;",
+            "varying lowp vec3 vColor;",
             "void main(void) {",
-            "gl_FragColor = vec4(vColor.x, vColor.y, vColor.z, 1);",
+            "gl_FragColor = vec4(vColor, 1);",
             "}"
         ].join("\n"));
 
