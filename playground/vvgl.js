@@ -14,7 +14,7 @@ const initRenderer = (function(canvas, options={}) {
     const {polygonLocations, polygonAttributes} = getPolygonVariableLocations(polygonProgram);
 
 
-    const array_index = new Uint32Array(100000);
+    const array_index = new Uint32Array(25000);
 
 
     array_index.forEach(function (el, i) {
@@ -124,16 +124,15 @@ const initRenderer = (function(canvas, options={}) {
 
             "float x = 2.0*(x1+offset[0])/resolution[0] - 1.0; ",
             "float y = 2.0*(y1 + offset[1])/resolution[1] - 1.0; ",
-            "vColor = color;",
+            "vColor = color/256.0;",
             "gl_Position = vec4(x, y, 0, 1.0);",
             "}"
         ].join("\n"));
 
         let gFragmentShader = createAndCompileShader(gl.FRAGMENT_SHADER, [
-            "precision mediump float;",
-            "varying lowp vec3 vColor;",
+            "varying highp vec3 vColor;",
             "void main(void) {",
-            "gl_FragColor = vec4(vColor, 1);",
+            "gl_FragColor = vec4(vColor.x, vColor.y, vColor.z, 1);",
             "}"
         ].join("\n"));
 
@@ -431,7 +430,30 @@ const initRenderer = (function(canvas, options={}) {
 
         gl.useProgram(polygonProgram);
 
-        gl.drawElements(gl.LINES,   data.num_bezier_curves-1, gl.UNSIGNED_INT, 0 );
+        gl.stencilOp(gl.KEEP, gl.KEEP, gl.INVERT);
+
+        gl.stencilFunc(gl.ALWAYS, 0xff , 0xff);
+        gl.stencilMask(0xff);
+        gl.depthMask(false);
+        gl.colorMask(false, false, false, false);
+
+
+        gl.drawElements(gl.TRIANGLE_FAN,   data.num_bezier_curves-1, gl.UNSIGNED_INT, 0 );
+
+
+        gl.stencilOp(gl.KEEP, gl.KEEP, gl.KEEP);
+
+        gl.stencilFunc(gl.NOTEQUAL, 0 , 0xff);
+        gl.stencilMask(0xff);
+        gl.depthMask(false);
+        gl.colorMask(true, true, true, true);
+
+        gl.drawElements(gl.TRIANGLE_FAN,   data.num_bezier_curves-1, gl.UNSIGNED_INT, 0 );
+
+
+
+
+
 
         /*
         let offset = 0;
