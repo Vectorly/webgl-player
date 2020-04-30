@@ -148,7 +148,7 @@ const vvgl = (function(canvas, options={}) {
             "vec4 y_vector = vec4(p1[1], c1[1], c2[1], p2[1]);",
 
             "float x = 2.0*(dot(t_vector, x_vector) + offset[0] + camera_offset[0])/resolution[0] - 1.0;",
-            "float y = -2.0*(dot(t_vector, y_vector) + offset[1] - camera_offset[1])/resolution[1] + 1.0;",
+            "float y = 2.0*(dot(t_vector, y_vector) + offset[1] - camera_offset[1])/resolution[1] - 1.0;",
 
 
             "float h =  floor((bezier_index*6.0 + 5.0 ) / bezier_modulo);",
@@ -531,12 +531,10 @@ const vvgl = (function(canvas, options={}) {
 
     function updateCamera(update) {
 
-
         width = update.w - update.x;
         height = update.h - update.y;
 
         gl.uniform2fv(locations["resolution"], [width, height]);
-
         gl.uniform2fv(locations["camera_offset"], [offset_w - update.x, offset_h + update.y]);
 
     }
