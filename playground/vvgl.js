@@ -14,6 +14,18 @@ const initRenderer = (function(canvas, options={}) {
     const {polygonLocations, polygonAttributes} = getPolygonVariableLocations(polygonProgram);
 
 
+    const array_index = new Uint32Array(100000);
+
+
+    array_index.forEach(function (el, i) {
+        array_index[i] = i;
+    });
+
+
+
+
+
+
 
 
     const width = options.width || 2560;
@@ -326,6 +338,66 @@ const initRenderer = (function(canvas, options={}) {
 
 
 
+        offset = 0;
+
+
+        const index_offsets = new Array(foreground_shapes.length);
+
+        for(let i =0; i <foreground_shapes.length; i++){
+
+            index_offsets[i] = offset;
+
+            let shape = foreground_shapes[i];
+
+            let this_offset = 0;
+
+            for(let j =0; j < shape.contour_lengths.length; j++){
+
+                let l = shape.contour_lengths[j];
+
+                if(l > 0){
+                    array_index[offset + this_offset + l] = 0xffffffff;
+                    this_offset +=l;
+                }
+
+            }
+
+            offset += shape.max_curves;
+            array_index[offset] = 0xffffffff;
+        }
+
+        data.index_offsets = index_offsets;
+
+
+        data.foreground_length = JSON.parse(JSON.stringify(offset));
+
+
+        for(let i =0; i <background_shapes.length; i++){
+
+            let shape = background_shapes[i];
+
+            let this_offset = 0;
+
+            for(let j =0; j < shape.contour_lengths.length; j++){
+
+                let l =shape.contour_lengths[j];
+
+                if(l > 0){
+                    array_index[offset + this_offset + l] = 0xffffffff;
+                    this_offset +=l;
+                }
+
+            }
+
+            offset += shape.max_curves;
+            array_index[offset] = 0xffffffff;
+        }
+
+
+        const element_array_index_buffer = gl.createBuffer();
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, element_array_index_buffer);
+        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, array_index, gl.STATIC_DRAW);
+
 
     }
 
@@ -359,7 +431,7 @@ const initRenderer = (function(canvas, options={}) {
 
         gl.useProgram(polygonProgram);
 
-        gl.drawArrays(gl.LINES,  0,  data.num_bezier_curves-1);
+        gl.drawElements(gl.LINES,   data.num_bezier_curves-1, gl.UNSIGNED_INT, 0 );
 
         /*
         let offset = 0;
