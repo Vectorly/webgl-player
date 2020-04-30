@@ -534,7 +534,7 @@ const initRenderer = (function(canvas, options={}) {
         update();
         render();
 
-        if(frame < 2) return window.requestAnimationFrame(step);
+        if(frame < 200) return window.requestAnimationFrame(step);
         else{
             console.log(`Done`);
         }
