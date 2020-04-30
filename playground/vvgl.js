@@ -9,15 +9,6 @@ const initRenderer = (function(canvas, options={}) {
     gl.useProgram(bezierProgram);
 
 
-    const array_index = new Uint32Array(1000000);
-
-
-    array_index.forEach(function (el, i) {
-        array_index[i] = i;
-    });
-
-
-
     const {locations, attributes} = getVariableLocations(bezierProgram);
 
     const width = options.width || 2560;
@@ -111,9 +102,6 @@ const initRenderer = (function(canvas, options={}) {
         const uniforms = ["resolution"];
         const attributes = ["t_vector", "x_vector", "y_vector",  "offset", "color"];
 
-   //     const attributes = ["t_vector", "x_vector", "y_vector"];
-
-        //"color",
 
         uniforms.forEach(key => locations[key] = gl.getUniformLocation(program, key));
         attributes.forEach(key => locations[key] = gl.getAttribLocation(program, key));
@@ -171,8 +159,6 @@ const initRenderer = (function(canvas, options={}) {
         window.gl  = gl;
 
         attributes.forEach(function (attribute) {
-
-            console.log(`Enabling attribute ${attribute} at location ${locations[attribute]}`);
             gl.enableVertexAttribArray(locations[attribute]);
         });
 
@@ -182,11 +168,7 @@ const initRenderer = (function(canvas, options={}) {
     function setBezierData(json) {
 
 
-     //   const bezier_buffer_data = new Float32Array(json.num_bezier_curves*13);
-
         const bezier_buffer_data = new Float32Array(json.num_bezier_curves*13);
-        //const y_data = new Float32Array(6*4);
-     //   const x_data = new Float32Array(6*4);
 
         const foreground_shapes = json.foreground_shapes;
         const background_shapes = json.background_shapes;
@@ -243,9 +225,6 @@ const initRenderer = (function(canvas, options={}) {
 
 
 
-
-
-
         const x_buffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, x_buffer);
         gl.bufferData(gl.ARRAY_BUFFER, bezier_buffer_data, gl.DYNAMIC_DRAW);
@@ -272,78 +251,6 @@ const initRenderer = (function(canvas, options={}) {
         gl.vertexAttribDivisor(locations["color"], 1);
 
 
-
-
-     //   data.bezier_buffer = bezier_buffer_data;
-
-
-
-
-      //  console.log(`Bezier buffer data`);
-       // console.log(bezier_buffer_data);
-        offset = 0;
-
-
-        const index_offsets = new Array(foreground_shapes.length);
-
-        for(let i =0; i <foreground_shapes.length; i++){
-
-            index_offsets[i] = offset;
-
-            let shape = foreground_shapes[i];
-
-            let this_offset = 0;
-
-            for(let j =0; j < shape.contour_lengths.length; j++){
-
-                let l = num_bezier_vertices*shape.contour_lengths[j];
-
-                if(l > 0){
-                    array_index[offset + this_offset + l] = 0xffffffff;
-                    this_offset +=l;
-                }
-
-            }
-
-            offset += num_bezier_vertices*shape.max_curves;
-            array_index[offset] = 0xffffffff;
-        }
-
-        data.index_offsets = index_offsets;
-
-
-        data.foreground_length = JSON.parse(JSON.stringify(offset));
-
-
-        for(let i =0; i <background_shapes.length; i++){
-
-            let shape = background_shapes[i];
-
-            let this_offset = 0;
-
-            for(let j =0; j < shape.contour_lengths.length; j++){
-
-                let l = num_bezier_vertices*shape.contour_lengths[j];
-
-                if(l > 0){
-                    array_index[offset + this_offset + l] = 0xffffffff;
-                    this_offset +=l;
-                }
-
-            }
-
-            offset += num_bezier_vertices*shape.max_curves;
-            array_index[offset] = 0xffffffff;
-        }
-
-
-
-
-        const element_array_index_buffer = gl.createBuffer();
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, element_array_index_buffer);
-        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, array_index, gl.STATIC_DRAW);
-
-        data.index_buffer = element_array_index_buffer;
 
         const num_buckets = 10;
 
@@ -487,19 +394,34 @@ const initRenderer = (function(canvas, options={}) {
     function render() {
 
         gl.clearColor(0, 0, 0, 1.0);
+        gl.clear( gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT);
 
 
 
-        gl.stencilOp(gl.KEEP, gl.KEEP, gl.KEEP);
 
         let offset = 0;
         let l = 0;
 
 
+        gl.stencilOp(gl.KEEP, gl.KEEP, gl.INVERT);
+        gl.drawArraysInstanced(gl.TRIANGLE_FAN,  offset, num_bezier_vertices, data.num_bezier_curves-1);
+
+        gl.stencilFunc(gl.ALWAYS, 0xff , 0xff);
+        gl.stencilMask(0xff);
+        gl.depthMask(false);
+        gl.colorMask(false, false, false, false);
 
 
-        console.log(`Number of bezier curves: ${data.num_bezier_curves}`);
-        gl.drawArraysInstanced(gl.LINES,  offset, num_bezier_vertices, data.num_bezier_curves-1);
+
+
+        gl.stencilOp(gl.KEEP, gl.KEEP, gl.KEEP);
+        gl.drawArraysInstanced(gl.TRIANGLE_FAN,  offset, num_bezier_vertices, data.num_bezier_curves-1);
+
+        gl.stencilFunc(gl.EQUAL, 0, 0xff);
+        gl.stencilMask(0xff);
+        gl.depthMask(false);
+        gl.colorMask(true, true, true, true);
+
 
 /*
         for(let i =0; i < data.num_buckets; i++){
@@ -542,7 +464,7 @@ const initRenderer = (function(canvas, options={}) {
         }
 
 */
-        gl.clear( gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT);
+
 
      //   gl.flush();
 
@@ -550,10 +472,10 @@ const initRenderer = (function(canvas, options={}) {
 
     function step() {
 
-       // update();
+        update();
         render();
 
-        if(frame < 1) return window.requestAnimationFrame(step);
+        if(frame < 150) return window.requestAnimationFrame(step);
         else{
             console.log(`Done`);
         }
@@ -563,7 +485,7 @@ const initRenderer = (function(canvas, options={}) {
 
         render();
 
-     //   window.requestAnimationFrame(step);
+        window.requestAnimationFrame(step);
 
 
     }
