@@ -456,7 +456,7 @@ const vvgl = (function(canvas, options={}) {
         data.index_buffer = element_array_index_buffer;
 
 
-        const num_buckets = 80;
+        const num_buckets = 150;
 
         data.num_buckets = num_buckets;
 
@@ -537,7 +537,7 @@ const vvgl = (function(canvas, options={}) {
 
         gl.uniform2fv(locations["resolution"], [width, height]);
 
-        gl.uniform2fv(locations["camera_offset"], [offset_w - update.x, 560 - offset_h + update.y]);
+        gl.uniform2fv(locations["camera_offset"], [offset_w - update.x, offset_h + update.y]);
 
     }
 
