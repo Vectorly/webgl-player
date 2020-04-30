@@ -225,28 +225,23 @@ const initRenderer = (function(canvas, options={}) {
 
 
 
-        const x_buffer = gl.createBuffer();
-        gl.bindBuffer(gl.ARRAY_BUFFER, x_buffer);
+        const bezier_buffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, bezier_buffer);
         gl.bufferData(gl.ARRAY_BUFFER, bezier_buffer_data, gl.DYNAMIC_DRAW);
+
         gl.vertexAttribPointer(locations["x_vector"], 4, gl.FLOAT, false, 52, 0);
         gl.vertexAttribDivisor(locations["x_vector"], 1);
 
 
-        const y_buffer = gl.createBuffer();
-        gl.bindBuffer(gl.ARRAY_BUFFER, y_buffer);
-        gl.bufferData(gl.ARRAY_BUFFER, bezier_buffer_data, gl.DYNAMIC_DRAW);
+
         gl.vertexAttribPointer(locations["y_vector"], 4, gl.FLOAT, false, 52, 16);
         gl.vertexAttribDivisor(locations["y_vector"], 1);
 
-        const offset_buffer = gl.createBuffer();
-        gl.bindBuffer(gl.ARRAY_BUFFER, offset_buffer);
-        gl.bufferData(gl.ARRAY_BUFFER, bezier_buffer_data, gl.DYNAMIC_DRAW);
+
         gl.vertexAttribPointer(locations["offset"], 4, gl.FLOAT, false, 52, 32);
         gl.vertexAttribDivisor(locations["offset"], 1);
 
-        const color_buffer = gl.createBuffer();
-        gl.bindBuffer(gl.ARRAY_BUFFER, color_buffer);
-        gl.bufferData(gl.ARRAY_BUFFER, bezier_buffer_data, gl.DYNAMIC_DRAW);
+
         gl.vertexAttribPointer(locations["color"], 4, gl.FLOAT, false, 52, 40);
         gl.vertexAttribDivisor(locations["color"], 1);
 
