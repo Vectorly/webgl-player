@@ -187,7 +187,7 @@ const initRenderer = (function(canvas, options={}) {
     function initBuffers() {
 
 
-        let step = 20;
+        let step = 5;
 
 
         for (let i=0; i <= step; i++){
