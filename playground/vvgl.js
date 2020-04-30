@@ -107,7 +107,7 @@ const initRenderer = (function(canvas, options={}) {
         let gFragmentShader = createAndCompileShader(gl.FRAGMENT_SHADER, [
             "varying lowp vec3 vColor;",
             "void main(void) {",
-            "gl_FragColor = vec4(vColor.x, vColor.y, vColor.z, 1.0);",
+            "gl_FragColor = vec4(vColor, 1);",
             "}"
         ].join("\n"));
 
