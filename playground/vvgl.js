@@ -482,10 +482,6 @@ const initRenderer = (function(canvas, options={}) {
         gl.vertexAttribPointer(bezierLocations["x_vector"], 4, gl.FLOAT, false, 52, 0);
         gl.vertexAttribDivisor(bezierLocations["x_vector"], 1);
 
-
-        gl.vertexAttribPointer(bezierLocations["x_vector"], 4, gl.FLOAT, false, 52, 0);
-        gl.vertexAttribDivisor(bezierLocations["x_vector"], 1);
-
         gl.vertexAttribPointer(bezierLocations["y_vector"], 4, gl.FLOAT, false, 52, 16);
         gl.vertexAttribDivisor(bezierLocations["y_vector"], 1);
 
@@ -542,6 +538,42 @@ const initRenderer = (function(canvas, options={}) {
         offset = 0;
 
 
+
+        bezerPointers();
+        gl.stencilOp(gl.KEEP, gl.KEEP, gl.INVERT);
+
+        for(let i =0; i < data.num_buckets; i++){
+
+            gl.stencilFunc(gl.EQUAL, (i+1) , 0xff);
+            gl.stencilMask(i+1);
+            gl.depthMask(false);
+            gl.colorMask(false, false, false, false);
+
+
+
+            if(data.bucket_lengths[i] > 0){
+
+
+                gl.vertexAttribPointer(bezierLocations["x_vector"], 4, gl.FLOAT, false, 52, 52*offset);
+                gl.vertexAttribPointer(bezierLocations["y_vector"], 4, gl.FLOAT, false, 52, 16 + 52*offset);
+                gl.vertexAttribPointer(bezierLocations["offset"], 4, gl.FLOAT, false, 52, 32 + 52*offset);
+                gl.vertexAttribPointer(bezierLocations["color"], 4, gl.FLOAT, false, 52, 40 + 52*offset);
+
+
+                gl.drawArraysInstanced(gl.TRIANGLE_FAN,  0, num_bezier_vertices, data.bucket_lengths[i]-1);
+                offset += data.bucket_lengths[i];
+            }
+
+
+        }
+
+
+        polygonPointers();
+
+
+
+        offset = 0;
+
         gl.stencilOp(gl.KEEP, gl.KEEP, gl.KEEP);
 
         for(let i =0; i < data.num_buckets; i++){
@@ -557,8 +589,6 @@ const initRenderer = (function(canvas, options={}) {
 
                 offset += data.bucket_lengths[i]*4;
             }
-
-
 
         }
 
