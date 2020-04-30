@@ -401,6 +401,8 @@ const initRenderer = (function(canvas, options={}) {
 
             bucket_lengths[i] = curves_this_shape;
 
+
+
         }
 
 
@@ -513,60 +515,102 @@ const initRenderer = (function(canvas, options={}) {
 
         gl.stencilOp(gl.KEEP, gl.KEEP, gl.INVERT);
 
-        gl.stencilFunc(gl.ALWAYS, 0xff , 0xff);
-        gl.stencilMask(0xff);
-        gl.depthMask(false);
-        gl.colorMask(false, false, false, false);
-
+        let  l;
+        let offset = 0;
 
         polygonPointers();
 
+        for(let i =0; i < data.num_buckets; i++){
 
-        gl.drawElements(gl.TRIANGLE_FAN,   data.num_bezier_curves-1, gl.UNSIGNED_INT, 0 );
-
-
-
-        gl.stencilOp(gl.KEEP, gl.KEEP, gl.INVERT);
-
-        gl.stencilFunc(gl.ALWAYS, 0xff , 0xff);
-        gl.stencilMask(0xff);
-        gl.depthMask(false);
-        gl.colorMask(false, false, false, false);
+            gl.stencilFunc(gl.ALWAYS, (i+1) , 0xff);
+            gl.stencilMask(i+1);
+            gl.depthMask(false);
+            gl.colorMask(false, false, false, false);
 
 
-        bezerPointers();
+
+            if(data.bucket_lengths[i] > 0){
+                gl.drawElements(gl.TRIANGLE_FAN,   data.bucket_lengths[i]-1,  gl.UNSIGNED_INT, offset);
+
+                offset += data.bucket_lengths[i]*4;
+            }
 
 
-        gl.drawArraysInstanced(gl.TRIANGLE_FAN,  0, num_bezier_vertices, data.num_bezier_curves-1);
+        }
 
 
-        polygonPointers();
-
-        gl.stencilOp(gl.KEEP, gl.KEEP, gl.KEEP);
-
-        gl.stencilFunc(gl.NOTEQUAL, 0 , 0xff);
-        gl.stencilMask(0xff);
-        gl.depthMask(false);
-        gl.colorMask(true, true, true, true);
-
-
-        gl.drawElements(gl.TRIANGLE_FAN,   data.num_bezier_curves-1, gl.UNSIGNED_INT, 0 );
+        offset = 0;
 
 
         gl.stencilOp(gl.KEEP, gl.KEEP, gl.KEEP);
 
-        gl.stencilFunc(gl.NOTEQUAL, 0 , 0xff);
-        gl.stencilMask(0xff);
-        gl.depthMask(false);
-        gl.colorMask(true, true, true, true);
+        for(let i =0; i < data.num_buckets; i++){
+
+            gl.stencilFunc(gl.EQUAL, (i+1) , 0xff);
+            gl.stencilMask(i+1);
+            gl.depthMask(false);
+            gl.colorMask(true, true, true, true);
 
 
-        bezerPointers();
+            if(data.bucket_lengths[i] > 0){
+                gl.drawElements(gl.TRIANGLE_FAN,   data.bucket_lengths[i]-1,  gl.UNSIGNED_INT, offset);
+
+                offset += data.bucket_lengths[i]*4;
+            }
 
 
-        gl.drawArraysInstanced(gl.TRIANGLE_FAN,  0, num_bezier_vertices, data.num_bezier_curves-1);
+
+        }
 
 
+
+        /*
+
+                gl.drawElements(gl.TRIANGLE_FAN,   data.num_bezier_curves-1, gl.UNSIGNED_INT, 0 );
+
+
+
+                gl.stencilOp(gl.KEEP, gl.KEEP, gl.INVERT);
+
+                gl.stencilFunc(gl.ALWAYS, 0xff , 0xff);
+                gl.stencilMask(0xff);
+                gl.depthMask(false);
+                gl.colorMask(false, false, false, false);
+
+
+                bezerPointers();
+
+
+                gl.drawArraysInstanced(gl.TRIANGLE_FAN,  0, num_bezier_vertices, data.num_bezier_curves-1);
+
+
+                polygonPointers();
+
+                gl.stencilOp(gl.KEEP, gl.KEEP, gl.KEEP);
+
+                gl.stencilFunc(gl.NOTEQUAL, 0 , 0xff);
+                gl.stencilMask(0xff);
+                gl.depthMask(false);
+                gl.colorMask(true, true, true, true);
+
+
+                gl.drawElements(gl.TRIANGLE_FAN,   data.num_bezier_curves-1, gl.UNSIGNED_INT, 0 );
+
+
+                gl.stencilOp(gl.KEEP, gl.KEEP, gl.KEEP);
+
+                gl.stencilFunc(gl.NOTEQUAL, 0 , 0xff);
+                gl.stencilMask(0xff);
+                gl.depthMask(false);
+                gl.colorMask(true, true, true, true);
+
+
+                bezerPointers();
+
+
+                gl.drawArraysInstanced(gl.TRIANGLE_FAN,  0, num_bezier_vertices, data.num_bezier_curves-1);
+
+        */
 
 
     }
