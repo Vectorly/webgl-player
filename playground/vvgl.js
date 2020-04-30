@@ -6,6 +6,11 @@ const initRenderer = (function(canvas, options={}) {
 
     const bezierProgram = initBezierProgram();
     const polygonProgram = initPolygonProgram();
+
+    const t_buffer = gl.createBuffer();
+    const bezier_buffer = gl.createBuffer();
+
+
     gl.useProgram(bezierProgram);
     const {bezierLocations, bezierAttributes} = getBezierVariableLocations(bezierProgram);
 
@@ -350,53 +355,17 @@ const initRenderer = (function(canvas, options={}) {
 
 
 
-        const bezier_buffer = gl.createBuffer();
+        const element_array_index_buffer = gl.createBuffer();
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, element_array_index_buffer);
+        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, array_index, gl.STATIC_DRAW);
+
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, t_buffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(t_array), gl.STATIC_DRAW);
+
+
         gl.bindBuffer(gl.ARRAY_BUFFER, bezier_buffer);
         gl.bufferData(gl.ARRAY_BUFFER, bezier_buffer_data, gl.DYNAMIC_DRAW);
-
-
-
-        gl.useProgram(polygonProgram);
-
-
-
-        gl.vertexAttribPointer(polygonLocations["x_vector"], 4, gl.FLOAT, false, 52, 0);
-        gl.vertexAttribPointer(polygonLocations["y_vector"], 4, gl.FLOAT, false, 52, 16);
-        gl.vertexAttribPointer(polygonLocations["offset"], 4, gl.FLOAT, false, 52, 32);
-        gl.vertexAttribPointer(polygonLocations["color"], 4, gl.FLOAT, false, 52, 40);
-        gl.uniform2fv(polygonLocations["resolution"], [width, height]);
-
-
-        gl.useProgram(bezierProgram);
-
-
-
-        gl.uniform2fv(bezierLocations["resolution"], [width, height]);
-
-
-        gl.vertexAttribPointer(bezierLocations["x_vector"], 4, gl.FLOAT, false, 52, 0);
-        gl.vertexAttribDivisor(bezierLocations["x_vector"], 1);
-
-
-        gl.vertexAttribPointer(bezierLocations["x_vector"], 4, gl.FLOAT, false, 52, 0);
-        gl.vertexAttribDivisor(bezierLocations["x_vector"], 1);
-
-        gl.vertexAttribPointer(bezierLocations["y_vector"], 4, gl.FLOAT, false, 52, 16);
-        gl.vertexAttribDivisor(bezierLocations["y_vector"], 1);
-
-        gl.vertexAttribPointer(bezierLocations["offset"], 4, gl.FLOAT, false, 52, 32);
-        gl.vertexAttribDivisor(bezierLocations["offset"], 1);
-
-
-        gl.vertexAttribPointer(bezierLocations["color"], 4, gl.FLOAT, false, 52, 40);
-        gl.vertexAttribDivisor(bezierLocations["color"], 1);
-
-
-
-
-
-
-
     }
 
 
@@ -426,6 +395,63 @@ const initRenderer = (function(canvas, options={}) {
 
     }
 
+    function polygonPointers() {
+
+        gl.useProgram(polygonProgram);
+
+        polygonAttributes.forEach(function (attribute) {
+            gl.enableVertexAttribArray(polygonLocations[attribute]);
+        });
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, bezier_buffer);
+        gl.vertexAttribPointer(polygonLocations["x_vector"], 4, gl.FLOAT, false, 52, 0);
+        gl.vertexAttribPointer(polygonLocations["y_vector"], 4, gl.FLOAT, false, 52, 16);
+        gl.vertexAttribPointer(polygonLocations["offset"], 4, gl.FLOAT, false, 52, 32);
+        gl.vertexAttribPointer(polygonLocations["color"], 4, gl.FLOAT, false, 52, 40);
+
+
+        gl.uniform2fv(polygonLocations["resolution"], [width, height]);
+
+    }
+
+    function bezerPointers() {
+
+        gl.useProgram(bezierProgram);
+
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, t_buffer);
+        gl.vertexAttribPointer(bezierLocations["t_vector"], 4, gl.FLOAT, false, 0, 0);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, bezier_buffer);
+
+        gl.vertexAttribPointer(bezierLocations["x_vector"], 4, gl.FLOAT, false, 52, 0);
+        gl.vertexAttribDivisor(bezierLocations["x_vector"], 1);
+
+
+        gl.vertexAttribPointer(bezierLocations["x_vector"], 4, gl.FLOAT, false, 52, 0);
+        gl.vertexAttribDivisor(bezierLocations["x_vector"], 1);
+
+        gl.vertexAttribPointer(bezierLocations["y_vector"], 4, gl.FLOAT, false, 52, 16);
+        gl.vertexAttribDivisor(bezierLocations["y_vector"], 1);
+
+        gl.vertexAttribPointer(bezierLocations["offset"], 4, gl.FLOAT, false, 52, 32);
+        gl.vertexAttribDivisor(bezierLocations["offset"], 1);
+
+
+        gl.vertexAttribPointer(bezierLocations["color"], 4, gl.FLOAT, false, 52, 40);
+        gl.vertexAttribDivisor(bezierLocations["color"], 1);
+
+
+        bezierAttributes.forEach(function (attribute) {
+            gl.enableVertexAttribArray(bezierLocations[attribute]);
+        });
+
+
+        gl.uniform2fv(bezierLocations["resolution"], [width, height]);
+
+    }
+
+
     function render() {
 
         gl.clearColor(0, 0, 0, 1.0);
@@ -433,12 +459,6 @@ const initRenderer = (function(canvas, options={}) {
 
 
 
-        gl.useProgram(polygonProgram);
-
-
-        polygonAttributes.forEach(function (attribute) {
-            gl.enableVertexAttribArray(polygonLocations[attribute]);
-        });
 
         gl.stencilOp(gl.KEEP, gl.KEEP, gl.INVERT);
 
@@ -449,32 +469,11 @@ const initRenderer = (function(canvas, options={}) {
 
 
 
-        const element_array_index_buffer = gl.createBuffer();
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, element_array_index_buffer);
-        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, array_index, gl.STATIC_DRAW);
+        polygonPointers();
+
 
 
         gl.drawElements(gl.TRIANGLE_FAN,   data.num_bezier_curves-1, gl.UNSIGNED_INT, 0 );
-
-
-        polygonAttributes.forEach(function (attribute) {
-            gl.disableVertexAttribArray(polygonLocations[attribute]);
-        });
-
-
-
-        gl.useProgram(bezierProgram);
-
-        const t_buffer = gl.createBuffer();
-        gl.bindBuffer(gl.ARRAY_BUFFER, t_buffer);
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(t_array), gl.STATIC_DRAW);
-
-        gl.vertexAttribPointer(bezierLocations["t_vector"], 4, gl.FLOAT, false, 0, 0);
-
-
-        bezierAttributes.forEach(function (attribute) {
-            gl.enableVertexAttribArray(bezierLocations[attribute]);
-        });
 
 
 
@@ -486,14 +485,13 @@ const initRenderer = (function(canvas, options={}) {
         gl.colorMask(true, true, true, true);
 
 
-
-        gl.drawArraysInstanced(gl.TRIANGLE_FAN,  0, num_bezier_vertices ,500);
-
+        bezerPointers();
 
 
-        bezierAttributes.forEach(function (attribute) {
-            gl.disableVertexAttribArray(bezierLocations[attribute]);
-        });
+        gl.drawArraysInstanced(gl.TRIANGLE_FAN,  0, num_bezier_vertices, data.num_bezier_curves-1);
+
+
+
 
 
 /*
@@ -586,7 +584,7 @@ const initRenderer = (function(canvas, options={}) {
         update();
         render();
 
-        if(frame < 150) return window.requestAnimationFrame(step);
+        if(frame < 2) return window.requestAnimationFrame(step);
         else{
             console.log(`Done`);
         }
@@ -596,7 +594,7 @@ const initRenderer = (function(canvas, options={}) {
 
         render();
 
-     //   window.requestAnimationFrame(step);
+        window.requestAnimationFrame(step);
 
 
     }
