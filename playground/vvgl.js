@@ -366,6 +366,48 @@ const initRenderer = (function(canvas, options={}) {
 
         gl.bindBuffer(gl.ARRAY_BUFFER, bezier_buffer);
         gl.bufferData(gl.ARRAY_BUFFER, bezier_buffer_data, gl.DYNAMIC_DRAW);
+
+
+
+
+        const num_buckets = 100;
+
+        data.num_buckets = num_buckets;
+
+        const shapes = [...foreground_shapes, ...background_shapes];
+
+        const shapes_per_bucket = Math.ceil(shapes.length / num_buckets);
+
+        const bucket_lengths = new Array(num_buckets);
+
+        for(let i = 0; i < num_buckets; i++){
+
+            let shapes_in_this_bucket;
+
+            if (i === num_buckets- 1){
+                shapes_in_this_bucket = shapes.slice(i*shapes_per_bucket);
+
+            } else{
+
+                shapes_in_this_bucket = shapes.slice(i*shapes_per_bucket, (i+1)*shapes_per_bucket);
+            }
+
+            let curves_this_shape = 0;
+
+            shapes_in_this_bucket.forEach(function (shape) {
+                curves_this_shape +=shape.max_curves;
+            });
+
+
+            bucket_lengths[i] = curves_this_shape;
+
+        }
+
+
+        data.bucket_lengths = bucket_lengths;
+
+
+
     }
 
 
