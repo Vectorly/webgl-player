@@ -591,57 +591,33 @@ const initRenderer = (function(canvas, options={}) {
             }
 
         }
+        offset = 0;
+
+        bezerPointers();
+        gl.stencilOp(gl.KEEP, gl.KEEP, gl.KEEP);
+
+        for(let i =0; i < data.num_buckets; i++){
+
+            gl.stencilFunc(gl.EQUAL, 0 , 0xff);
+            gl.stencilMask(i+1);
+            gl.depthMask(false);
+            gl.colorMask(true, true, true, true);
 
 
+            if(data.bucket_lengths[i] > 0){
 
-        /*
-
-                gl.drawElements(gl.TRIANGLE_FAN,   data.num_bezier_curves-1, gl.UNSIGNED_INT, 0 );
-
-
-
-                gl.stencilOp(gl.KEEP, gl.KEEP, gl.INVERT);
-
-                gl.stencilFunc(gl.ALWAYS, 0xff , 0xff);
-                gl.stencilMask(0xff);
-                gl.depthMask(false);
-                gl.colorMask(false, false, false, false);
+                gl.vertexAttribPointer(bezierLocations["x_vector"], 4, gl.FLOAT, false, 52, 52*offset);
+                gl.vertexAttribPointer(bezierLocations["y_vector"], 4, gl.FLOAT, false, 52, 16 + 52*offset);
+                gl.vertexAttribPointer(bezierLocations["offset"], 4, gl.FLOAT, false, 52, 32 + 52*offset);
+                gl.vertexAttribPointer(bezierLocations["color"], 4, gl.FLOAT, false, 52, 40 + 52*offset);
 
 
-                bezerPointers();
+                gl.drawArraysInstanced(gl.TRIANGLE_FAN,  0, num_bezier_vertices, data.bucket_lengths[i]-1);
+                offset += data.bucket_lengths[i];
+            }
 
 
-                gl.drawArraysInstanced(gl.TRIANGLE_FAN,  0, num_bezier_vertices, data.num_bezier_curves-1);
-
-
-                polygonPointers();
-
-                gl.stencilOp(gl.KEEP, gl.KEEP, gl.KEEP);
-
-                gl.stencilFunc(gl.NOTEQUAL, 0 , 0xff);
-                gl.stencilMask(0xff);
-                gl.depthMask(false);
-                gl.colorMask(true, true, true, true);
-
-
-                gl.drawElements(gl.TRIANGLE_FAN,   data.num_bezier_curves-1, gl.UNSIGNED_INT, 0 );
-
-
-                gl.stencilOp(gl.KEEP, gl.KEEP, gl.KEEP);
-
-                gl.stencilFunc(gl.NOTEQUAL, 0 , 0xff);
-                gl.stencilMask(0xff);
-                gl.depthMask(false);
-                gl.colorMask(true, true, true, true);
-
-
-                bezerPointers();
-
-
-                gl.drawArraysInstanced(gl.TRIANGLE_FAN,  0, num_bezier_vertices, data.num_bezier_curves-1);
-
-        */
-
+        }
 
     }
 
