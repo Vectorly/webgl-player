@@ -263,6 +263,26 @@ const initRenderer = (function(canvas, options={}) {
 
 
 
+        for(let i =0; i <shapes.length; i++){
+
+
+            shapes[i].contour_offsets = new Array(shapes[i].contour_lengths.length);
+
+            let contour_offset= shapes[i].offset;
+
+
+            for(let j = 0; j < shapes[i].contour_lengths.length; j++){
+
+                shapes[i].contour_offsets[j] = contour_offset;
+
+                contour_offset += shapes[i].contour_lengths[j];
+            }
+
+
+
+        }
+
+
         data.offsets = offsets;
 
         data.bezier_buffer = bezier_buffer_data;
@@ -432,16 +452,9 @@ const initRenderer = (function(canvas, options={}) {
 
         shapes.forEach(function (shape) {
 
-            let this_offset = 0;
-
-            shape.contour_lengths.forEach(function (contour_length) {
-
-                if(contour_length > 0){
-                    gl.drawArrays(gl.TRIANGLE_FAN,  shape.offset + this_offset,  contour_length );
-                    this_offset += contour_length;
-                }
-
-            });
+            for (let i = 0; i < shape.contour_lengths.length; i++){
+                gl.drawArrays(gl.TRIANGLE_FAN, shape.contour_offsets[i],  shape.contour_lengths[i] );
+            }
 
         });
     }
