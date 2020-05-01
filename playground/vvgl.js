@@ -18,14 +18,6 @@ const initRenderer = (function(canvas, options={}) {
     const {polygonLocations, polygonAttributes} = getPolygonVariableLocations(polygonProgram);
 
 
-    const array_index = new Uint32Array(25000);
-
-
-    array_index.forEach(function (el, i) {
-        array_index[i] = i;
-    });
-
-
     const t_array = [];
 
 
@@ -360,10 +352,6 @@ const initRenderer = (function(canvas, options={}) {
 
         gl.useProgram(polygonProgram);
 
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, element_array_index_buffer);
-        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, array_index, gl.STATIC_DRAW);
-
-
 
         gl.bindBuffer(gl.ARRAY_BUFFER, bezier_buffer);
         gl.vertexAttribPointer(polygonLocations["x_vector"], 4, gl.FLOAT, false, 52, 0);
@@ -465,9 +453,6 @@ const initRenderer = (function(canvas, options={}) {
 
         gl.stencilOp(gl.KEEP, gl.KEEP, gl.INVERT);
 
-
-
-
         polygonPointers();
 
         for(let i =0; i < data.num_buckets; i++){
@@ -487,8 +472,6 @@ const initRenderer = (function(canvas, options={}) {
 
         let offset = 0;
 
-
-
         bezerPointers();
 
         gl.stencilOp( gl.KEEP,  gl.KEEP, gl.INVERT);
@@ -506,7 +489,6 @@ const initRenderer = (function(canvas, options={}) {
 
 
         polygonPointers();
-
 
 
         gl.stencilOp(gl.KEEP, gl.KEEP, gl.KEEP);
