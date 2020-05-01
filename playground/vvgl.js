@@ -350,7 +350,7 @@ const initRenderer = (function(canvas, options={}) {
             }
 
             offset += shape.max_curves;
-            array_index[offset - 1] = 0xffffffff;
+            array_index[offset - 1 ] = 0xffffffff;
         }
 
 
@@ -378,9 +378,6 @@ const initRenderer = (function(canvas, options={}) {
 
         const shapes_per_bucket = Math.ceil(shapes.length / num_buckets);
 
-        console.log(`Shapes per bucket`);
-        console.log(shapes_per_bucket);
-
         const bucket_lengths = new Array(num_buckets);
 
         for(let i = 0; i < num_buckets; i++){
@@ -395,8 +392,6 @@ const initRenderer = (function(canvas, options={}) {
                 shapes_in_this_bucket = shapes.slice(i*shapes_per_bucket, (i+1)*shapes_per_bucket);
             }
 
-            console.log(`Shapes in bucket ${i}`);
-            console.log(shapes_in_this_bucket);
 
             let curves_this_shape = 0;
 
@@ -424,10 +419,6 @@ const initRenderer = (function(canvas, options={}) {
 
         data.bucket_lengths = bucket_lengths;
 
-        console.log(`Bucket lengths`);
-        console.log(bucket_lengths);
-
-
 
     }
 
@@ -441,17 +432,16 @@ const initRenderer = (function(canvas, options={}) {
 
     function load(json) {
 
-      //  json.background_shapes = [];
-//245
-       // json.foreground_shapes = [json.foreground_shapes[363], json.foreground_shapes[245]];
-
-     //   json.foreground_shapes = [   json.foreground_shapes[245], json.foreground_shapes[363] ];
-     //   json.foreground_shapes = [json.foreground_shapes[363]];
+        json.background_shapes = [];
 
         data.foreground_shapes = json.foreground_shapes;
         data.background_shapes = json.background_shapes;
         data.num_bezier_curves = json.num_bezier_curves;
         data.updates = json.updates;
+
+        data.shapes = json.foreground_shapes;
+
+        console.log(data.shapes);
 
         setBezierData(json);
     }
@@ -542,45 +532,28 @@ const initRenderer = (function(canvas, options={}) {
 
         polygonPointers();
 
-        for(let i =0; i < data.num_buckets; i++){
+        data.shapes.forEach(function (shape, i ) {
 
-            gl.stencilFunc(gl.ALWAYS, i+1 , 0xff);
-            gl.stencilMask(i+1);
+            gl.stencilFunc(gl.ALWAYS, i%100+1 , 0xff);
+            gl.stencilMask(i%100+1);
             gl.depthMask(false);
             gl.colorMask(false, false, false, false);
 
 
-            console.log(`Running bucket ${i}`);
+            let this_offset = 0;
 
+            shape.contour_lengths.forEach(function (contour_length) {
 
-            if(data.bucket_lengths[i] > 0){
+                if(contour_length > 0){
+                    gl.drawArrays(gl.TRIANGLE_FAN,  offset + this_offset,  contour_length);
+                    this_offset += contour_length;
+                }
 
-                console.log(`Running from bezier curve ${offset} to ${offset + data.bucket_lengths[i]}`);
+            });
 
+            offset += shape.max_curves;
 
-                console.log("Offsets");
-                console.log(data.offsets);
-
-                console.log(`Current offset`);
-                console.log(offset);
-
-                console.log("Start location");
-                console.log(13*offset/4);
-
-                console.log(`Data from bezier curves`);
-                console.log(data.bezier_buffer.slice(13*offset/4, 13*(data.bucket_lengths[i] +offset/4) ));
-
-
-
-                gl.drawElements(gl.TRIANGLE_FAN,  data.bucket_lengths[i],  gl.UNSIGNED_INT, offset);
-
-                offset += data.bucket_lengths[i]*4;
-
-
-            }
-
-
-        }
+        });
 
 
         offset = 0;
@@ -608,7 +581,7 @@ const initRenderer = (function(canvas, options={}) {
                 gl.vertexAttribPointer(bezierLocations["color"], 4, gl.FLOAT, false, 52, 40 + 52*offset);
 
 
-              //  gl.drawArraysInstanced(gl.TRIANGLE_FAN,  0, num_bezier_vertices, data.bucket_lengths[i]-1);
+           //     gl.drawArraysInstanced(gl.TRIANGLE_FAN,  0, num_bezier_vertices, data.bucket_lengths[i]-1);
                 offset += data.bucket_lengths[i];
             }
 
@@ -624,6 +597,31 @@ const initRenderer = (function(canvas, options={}) {
 
         gl.stencilOp(gl.KEEP, gl.KEEP, gl.KEEP);
 
+        data.shapes.forEach(function (shape, i ) {
+
+            gl.stencilFunc(gl.EQUAL, (i%100+1) , 0xff);
+            gl.stencilMask(i%100+1);
+            gl.depthMask(false);
+            gl.colorMask(true, true, true, true);
+
+
+            let this_offset = 0;
+
+            shape.contour_lengths.forEach(function (contour_length) {
+
+                if(contour_length > 0){
+                    gl.drawArrays(gl.TRIANGLE_FAN,  offset + this_offset,  contour_length);
+                    this_offset += contour_length;
+                }
+
+            });
+
+            offset += shape.max_curves;
+
+        });
+
+
+        /*
         for(let i =0; i < data.num_buckets; i++){
 
             gl.stencilFunc(gl.EQUAL, (i+1) , 0xff);
@@ -641,14 +639,7 @@ const initRenderer = (function(canvas, options={}) {
 
 
         }
-
-        for (let i = 0; i < array_index.length; i++){
-
-            if(array_index[i] === 0xffffffff){
-                console.log(`Breakfpoints for array index: ${i}`);
-            }
-        }
-
+*/
 
         offset = 0;
 
@@ -672,7 +663,7 @@ const initRenderer = (function(canvas, options={}) {
                 gl.vertexAttribPointer(bezierLocations["color"], 4, gl.FLOAT, false, 52, 40 + 52*offset);
 
 
-         //      gl.drawArraysInstanced(gl.TRIANGLE_FAN,  0, num_bezier_vertices, data.bucket_lengths[i]-1);
+             //  gl.drawArraysInstanced(gl.TRIANGLE_FAN,  0, num_bezier_vertices, data.bucket_lengths[i]-1);
                 offset += data.bucket_lengths[i];
             }
 
