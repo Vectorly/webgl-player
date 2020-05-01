@@ -102,11 +102,6 @@ const initRenderer = (function(canvas, options={}) {
     }
 
 
-    /*
-            "float x = 2.0*(x1+offset[0])/resolution[0] - 1.0; ",
-            "float y = 2.0*(y1 + offset[1])/resolution[1] - 1.0; ",
-*/
-
 
 
     function initPolygonProgram() {
@@ -208,6 +203,14 @@ const initRenderer = (function(canvas, options={}) {
         gl.enable(gl.STENCIL_TEST);
         gl.enable(gl.DEPTH_TEST);
         gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
+
+
+
+        gl.useProgram(polygonProgram);
+        gl.uniform2fv(polygonLocations["resolution"], [2/width, 2/height]);
+
+        gl.useProgram(bezierProgram);
+        gl.uniform2fv(bezierLocations["resolution"], [2/width, 2/height]);
 
     }
 
@@ -368,7 +371,7 @@ const initRenderer = (function(canvas, options={}) {
         gl.vertexAttribDivisor(polygonLocations["color"], 0);
         gl.vertexAttribDivisor(polygonLocations["offset"], 0);
 
-        gl.uniform2fv(polygonLocations["resolution"], [2/width, 2/height]);
+
 
 
         polygonAttributes.forEach(function (attribute) {
@@ -406,7 +409,7 @@ const initRenderer = (function(canvas, options={}) {
         });
 
 
-        gl.uniform2fv(bezierLocations["resolution"], [2/width, 2/height]);
+
 
     }
 
