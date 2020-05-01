@@ -204,8 +204,6 @@ const initRenderer = (function(canvas, options={}) {
         gl.enable(gl.DEPTH_TEST);
         gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
 
-        window.gl  = gl;
-
     }
 
 
