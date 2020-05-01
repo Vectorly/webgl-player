@@ -380,6 +380,8 @@ const initRenderer = (function(canvas, options={}) {
 
         const bucket_lengths = new Array(num_buckets);
 
+        const buckets = new Array(num_buckets);
+
         for(let i = 0; i < num_buckets; i++){
 
             let shapes_in_this_bucket;
@@ -398,13 +400,6 @@ const initRenderer = (function(canvas, options={}) {
             shapes_in_this_bucket.forEach(function (shape) {
 
 
-                /*
-
-                shape.contour_lengths.forEach(function (contour_length) {
-                    curves_this_shape +=contour_length;
-                });
-*/
-
                 curves_this_shape += shape.max_curves;
 
             });
@@ -412,12 +407,14 @@ const initRenderer = (function(canvas, options={}) {
 
             bucket_lengths[i] = curves_this_shape;
 
-
+            buckets[i] = shapes_in_this_bucket;
 
         }
 
 
         data.bucket_lengths = bucket_lengths;
+
+        data.buckets = buckets;
 
 
     }
@@ -440,8 +437,6 @@ const initRenderer = (function(canvas, options={}) {
         data.updates = json.updates;
 
         data.shapes = json.foreground_shapes;
-
-        console.log(data.shapes);
 
         setBezierData(json);
     }
@@ -532,29 +527,36 @@ const initRenderer = (function(canvas, options={}) {
 
         polygonPointers();
 
-        data.shapes.forEach(function (shape, i ) {
 
-            gl.stencilFunc(gl.ALWAYS, i%100+1 , 0xff);
-            gl.stencilMask(i%100+1);
+
+
+        for(let i =0; i < data.num_buckets; i++){
+
+            const shapes = data.buckets[i];
+
+            gl.stencilFunc(gl.ALWAYS, i+1 , 0xff);
+            gl.stencilMask(i+1);
             gl.depthMask(false);
             gl.colorMask(false, false, false, false);
 
+            shapes.forEach(function (shape) {
 
-            let this_offset = 0;
+                let this_offset = 0;
 
-            shape.contour_lengths.forEach(function (contour_length) {
+                shape.contour_lengths.forEach(function (contour_length) {
 
-                if(contour_length > 0){
-                    gl.drawArrays(gl.TRIANGLE_FAN,  offset + this_offset,  contour_length);
-                    this_offset += contour_length;
-                }
+                    if(contour_length > 0){
+                        gl.drawArrays(gl.TRIANGLE_FAN,  offset + this_offset,  contour_length);
+                        this_offset += contour_length;
+                    }
+
+                });
+
+                offset += shape.max_curves;
 
             });
 
-            offset += shape.max_curves;
-
-        });
-
+        }
 
         offset = 0;
 
@@ -597,32 +599,10 @@ const initRenderer = (function(canvas, options={}) {
 
         gl.stencilOp(gl.KEEP, gl.KEEP, gl.KEEP);
 
-        data.shapes.forEach(function (shape, i ) {
 
-            gl.stencilFunc(gl.EQUAL, (i%100+1) , 0xff);
-            gl.stencilMask(i%100+1);
-            gl.depthMask(false);
-            gl.colorMask(true, true, true, true);
-
-
-            let this_offset = 0;
-
-            shape.contour_lengths.forEach(function (contour_length) {
-
-                if(contour_length > 0){
-                    gl.drawArrays(gl.TRIANGLE_FAN,  offset + this_offset,  contour_length);
-                    this_offset += contour_length;
-                }
-
-            });
-
-            offset += shape.max_curves;
-
-        });
-
-
-        /*
         for(let i =0; i < data.num_buckets; i++){
+
+            const shapes = data.buckets[i];
 
             gl.stencilFunc(gl.EQUAL, (i+1) , 0xff);
             gl.stencilMask(i+1);
@@ -630,16 +610,25 @@ const initRenderer = (function(canvas, options={}) {
             gl.colorMask(true, true, true, true);
 
 
-            if(data.bucket_lengths[i] > 0){
-                gl.drawElements(gl.TRIANGLE_FAN,  data.bucket_lengths[i],  gl.UNSIGNED_INT, offset);
+            shapes.forEach(function (shape) {
 
-                offset += data.bucket_lengths[i]*4;
-            }
+                let this_offset = 0;
 
+                shape.contour_lengths.forEach(function (contour_length) {
 
+                    if(contour_length > 0){
+                        gl.drawArrays(gl.TRIANGLE_FAN,  offset + this_offset,  contour_length);
+                        this_offset += contour_length;
+                    }
+
+                });
+
+                offset += shape.max_curves;
+
+            });
 
         }
-*/
+
 
         offset = 0;
 
