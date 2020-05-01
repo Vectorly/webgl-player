@@ -315,10 +315,10 @@ const initRenderer = (function(canvas, options={}) {
 
                 let l = shape.contour_lengths[j];
 
-                //if(l > 0){
-                    array_index[offset + this_offset + l] = 0xffffffff;
+                if(l > 0){
+                    array_index[offset + this_offset + l - 1] = 0xffffffff;
                     this_offset +=l;
-          //      }
+                }
 
             }
 
@@ -343,14 +343,14 @@ const initRenderer = (function(canvas, options={}) {
                 let l =shape.contour_lengths[j];
 
                 if(l > 0){
-                    array_index[offset + this_offset + l] = 0xffffffff;
+                    array_index[offset + this_offset + l - 1] = 0xffffffff;
                     this_offset +=l;
                 }
 
             }
 
             offset += shape.max_curves;
-            array_index[offset] = 0xffffffff;
+            array_index[offset - 1] = 0xffffffff;
         }
 
 
@@ -370,7 +370,7 @@ const initRenderer = (function(canvas, options={}) {
 
 
 
-        const num_buckets = 2;
+        const num_buckets = 50;
 
         data.num_buckets = num_buckets;
 
@@ -441,11 +441,11 @@ const initRenderer = (function(canvas, options={}) {
 
     function load(json) {
 
-        json.background_shapes = [];
+      //  json.background_shapes = [];
 //245
        // json.foreground_shapes = [json.foreground_shapes[363], json.foreground_shapes[245]];
 
-        json.foreground_shapes = [   json.foreground_shapes[245], json.foreground_shapes[363] ];
+     //   json.foreground_shapes = [   json.foreground_shapes[245], json.foreground_shapes[363] ];
      //   json.foreground_shapes = [json.foreground_shapes[363]];
 
         data.foreground_shapes = json.foreground_shapes;
