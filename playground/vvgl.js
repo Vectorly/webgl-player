@@ -455,13 +455,21 @@ const initRenderer = (function(canvas, options={}) {
     function renderBeziers(offset, i) {
 
 
-        gl.vertexAttribPointer(bezierLocations["x_vector"], 4, gl.FLOAT, false, 52, 52*offset);
-        gl.vertexAttribPointer(bezierLocations["y_vector"], 4, gl.FLOAT, false, 52, 16 + 52*offset);
-        gl.vertexAttribPointer(bezierLocations["offset"], 4, gl.FLOAT, false, 52, 32 + 52*offset);
-        gl.vertexAttribPointer(bezierLocations["color"], 4, gl.FLOAT, false, 52, 40 + 52*offset);
+        if(data.bucket_lengths[i] > 0){
+
+            gl.vertexAttribPointer(bezierLocations["x_vector"], 4, gl.FLOAT, false, 52, 52*offset);
+            gl.vertexAttribPointer(bezierLocations["y_vector"], 4, gl.FLOAT, false, 52, 16 + 52*offset);
+            gl.vertexAttribPointer(bezierLocations["offset"], 4, gl.FLOAT, false, 52, 32 + 52*offset);
+            gl.vertexAttribPointer(bezierLocations["color"], 4, gl.FLOAT, false, 52, 40 + 52*offset);
+
+            gl.drawArraysInstanced(gl.TRIANGLE_FAN,  0, num_bezier_vertices, data.bucket_lengths[i]-1);
+
+        }
 
 
-        gl.drawArraysInstanced(gl.TRIANGLE_FAN,  0, num_bezier_vertices, data.bucket_lengths[i]-1);
+
+
+        return offset + data.bucket_lengths[i];
     }
 
     function render() {
@@ -473,7 +481,7 @@ const initRenderer = (function(canvas, options={}) {
         gl.stencilOp(gl.KEEP, gl.KEEP, gl.INVERT);
 
 
-        let offset = 0;
+
 
         polygonPointers();
 
@@ -492,11 +500,12 @@ const initRenderer = (function(canvas, options={}) {
 
         }
 
-        offset = 0;
+        let offset = 0;
 
 
 
         bezerPointers();
+
         gl.stencilOp( gl.KEEP,  gl.KEEP, gl.INVERT);
 
         for(let i =0; i < data.num_buckets; i++){
@@ -506,13 +515,7 @@ const initRenderer = (function(canvas, options={}) {
             gl.depthMask(false);
             gl.colorMask(false, false, false, false);
 
-
-
-            if(data.bucket_lengths[i] > 0){
-                renderBeziers(offset, i);
-                offset += data.bucket_lengths[i];
-            }
-
+            offset =  renderBeziers(offset, i);
 
         }
 
@@ -552,11 +555,7 @@ const initRenderer = (function(canvas, options={}) {
             gl.depthMask(false);
             gl.colorMask(true, true, true, true);
 
-
-            if(data.bucket_lengths[i] > 0){
-                renderBeziers(offset, i);
-                offset += data.bucket_lengths[i];
-            }
+            offset =  renderBeziers(offset, i);
 
         }
 
