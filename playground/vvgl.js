@@ -429,8 +429,6 @@ const initRenderer = (function(canvas, options={}) {
 
     function load(json) {
 
-        json.background_shapes = [];
-
         data.foreground_shapes = json.foreground_shapes;
         data.background_shapes = json.background_shapes;
         data.num_bezier_curves = json.num_bezier_curves;
@@ -528,8 +526,6 @@ const initRenderer = (function(canvas, options={}) {
         polygonPointers();
 
 
-
-
         for(let i =0; i < data.num_buckets; i++){
 
             const shapes = data.buckets[i];
@@ -583,7 +579,7 @@ const initRenderer = (function(canvas, options={}) {
                 gl.vertexAttribPointer(bezierLocations["color"], 4, gl.FLOAT, false, 52, 40 + 52*offset);
 
 
-           //     gl.drawArraysInstanced(gl.TRIANGLE_FAN,  0, num_bezier_vertices, data.bucket_lengths[i]-1);
+                gl.drawArraysInstanced(gl.TRIANGLE_FAN,  0, num_bezier_vertices, data.bucket_lengths[i]-1);
                 offset += data.bucket_lengths[i];
             }
 
@@ -652,7 +648,7 @@ const initRenderer = (function(canvas, options={}) {
                 gl.vertexAttribPointer(bezierLocations["color"], 4, gl.FLOAT, false, 52, 40 + 52*offset);
 
 
-             //  gl.drawArraysInstanced(gl.TRIANGLE_FAN,  0, num_bezier_vertices, data.bucket_lengths[i]-1);
+               gl.drawArraysInstanced(gl.TRIANGLE_FAN,  0, num_bezier_vertices, data.bucket_lengths[i]-1);
                 offset += data.bucket_lengths[i];
             }
 
