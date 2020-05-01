@@ -248,6 +248,10 @@ const initRenderer = (function(canvas, options={}) {
 
         const shapes = [...foreground_shapes, ...background_shapes];
 
+
+        // Just to remove that one error
+        shapes[shapes.length-1].contour_lengths[0] = shapes[shapes.length-1].contour_lengths[0]-1;
+
         const offsets = new Array(shapes.length);
 
 
@@ -442,7 +446,8 @@ const initRenderer = (function(canvas, options={}) {
             shape.contour_lengths.forEach(function (contour_length) {
 
                 if(contour_length > 0){
-                    gl.drawArrays(gl.TRIANGLE_FAN,  shape.offset + this_offset,  contour_length);
+                    gl.drawArrays(gl.TRIANGLE_FAN,  shape.offset + this_offset,  contour_length );
+
                     this_offset += contour_length;
                 }
 
@@ -465,8 +470,6 @@ const initRenderer = (function(canvas, options={}) {
             gl.drawArraysInstanced(gl.TRIANGLE_FAN,  0, num_bezier_vertices, data.bucket_lengths[i]-1);
 
         }
-
-
 
 
         return offset + data.bucket_lengths[i];
