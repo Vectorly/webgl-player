@@ -299,7 +299,7 @@ const initRenderer = (function(canvas, options={}) {
 
 
 
-        const num_buckets = 100;
+        const num_buckets = 50;
 
         data.num_buckets = num_buckets;
 
@@ -447,7 +447,6 @@ const initRenderer = (function(canvas, options={}) {
 
                 if(contour_length > 0){
                     gl.drawArrays(gl.TRIANGLE_FAN,  shape.offset + this_offset,  contour_length );
-
                     this_offset += contour_length;
                 }
 
@@ -553,7 +552,7 @@ const initRenderer = (function(canvas, options={}) {
 
         for(let i =0; i < data.num_buckets; i++){
 
-            gl.stencilFunc(gl.NOTEQUAL, 0 , 0xff);
+            gl.stencilFunc(gl.EQUAL, i+1 , 0xff);
             gl.stencilMask(255-(i+1));
             gl.depthMask(false);
             gl.colorMask(true, true, true, true);
@@ -579,7 +578,7 @@ const initRenderer = (function(canvas, options={}) {
 
         render();
 
-      //  window.requestAnimationFrame(step);
+        window.requestAnimationFrame(step);
 
 
     }
