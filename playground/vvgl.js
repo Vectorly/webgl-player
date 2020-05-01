@@ -104,6 +104,13 @@ const initRenderer = (function(canvas, options={}) {
     }
 
 
+    /*
+            "float x = 2.0*(x1+offset[0])/resolution[0] - 1.0; ",
+            "float y = 2.0*(y1 + offset[1])/resolution[1] - 1.0; ",
+*/
+
+
+
     function initPolygonProgram() {
 
         let gVertexShader = createAndCompileShader(gl.VERTEX_SHADER, [
@@ -115,10 +122,10 @@ const initRenderer = (function(canvas, options={}) {
             "varying lowp vec3 vColor;",
             "void main(void) {",
 
-            "float x = 2.0*(x1+offset[0])/resolution[0] - 1.0; ",
-            "float y = 2.0*(y1 + offset[1])/resolution[1] - 1.0; ",
+            "vec2 point = (vec2(x1, y1)+offset)*resolution - 1.0; ",
+
             "vColor = color/256.0;",
-            "gl_Position = vec4(x, y, 0, 1.0);",
+            "gl_Position = vec4(point, 0, 1.0);",
             "}"
         ].join("\n"));
 
@@ -363,7 +370,7 @@ const initRenderer = (function(canvas, options={}) {
         gl.vertexAttribDivisor(polygonLocations["color"], 0);
         gl.vertexAttribDivisor(polygonLocations["offset"], 0);
 
-        gl.uniform2fv(polygonLocations["resolution"], [width, height]);
+        gl.uniform2fv(polygonLocations["resolution"], [2/width, 2/height]);
 
 
         polygonAttributes.forEach(function (attribute) {
