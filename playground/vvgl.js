@@ -29,10 +29,6 @@ const initRenderer = (function(canvas, options={}) {
     const t_array = [];
 
 
-
-
-
-
     const width = options.width || 2560;
     const height= options.height || 1440;
 
@@ -216,20 +212,7 @@ const initRenderer = (function(canvas, options={}) {
         gl.enable(gl.DEPTH_TEST);
         gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
 
-
-      //  gl.useProgram(polygonProgram);
-
-     //   gl.uniform2fv(polygonLocations["resolution"], [width, height]);
-
         window.gl  = gl;
-/*
-        attributes.forEach(function (attribute) {
-            gl.enableVertexAttribArray(locations[attribute]);
-        });
-*/
-
-
-
 
     }
 
