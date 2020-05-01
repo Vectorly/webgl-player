@@ -299,7 +299,7 @@ const initRenderer = (function(canvas, options={}) {
 
 
 
-        const num_buckets = 50;
+        const num_buckets = 70;
 
         data.num_buckets = num_buckets;
 
