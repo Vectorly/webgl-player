@@ -83,11 +83,9 @@ const initRenderer = (function(canvas, options={}) {
 
             "void main(void) {",
 
-
-                "float x = 2.0*(dot(t_vector, x_vector) + offset[0])/resolution[0] - 1.0;",
-                "float y = 2.0*(dot(t_vector, y_vector) + offset[1])/resolution[1] - 1.0;",
+                "vec2 point = (vec2(dot(t_vector, x_vector), dot(t_vector, y_vector)) + offset)*resolution - 1.0;",
                 "vColor = color/256.0;",
-                "gl_Position = vec4(x, y, 0, 1);",
+                "gl_Position = vec4(point, 0, 1);",
             "}"
         ].join("\n"));
 
@@ -408,7 +406,7 @@ const initRenderer = (function(canvas, options={}) {
         });
 
 
-        gl.uniform2fv(bezierLocations["resolution"], [width, height]);
+        gl.uniform2fv(bezierLocations["resolution"], [2/width, 2/height]);
 
     }
 
