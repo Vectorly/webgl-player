@@ -107,16 +107,16 @@ const initRenderer = (function(canvas, options={}) {
     function initPolygonProgram() {
 
         let gVertexShader = createAndCompileShader(gl.VERTEX_SHADER, [
-            "attribute vec4 x_vector;",
-            "attribute vec4 y_vector;",
+            "attribute float x1;",
+            "attribute float y1;",
             "attribute vec3 color;",
             "attribute vec2 offset;",
             "uniform vec2 resolution;",
             "varying lowp vec3 vColor;",
             "void main(void) {",
 
-            "float x = 2.0*(x_vector[0]+offset[0])/resolution[0] - 1.0; ",
-            "float y = 2.0*(y_vector[0] + offset[1])/resolution[1] - 1.0; ",
+            "float x = 2.0*(x1+offset[0])/resolution[0] - 1.0; ",
+            "float y = 2.0*(y1 + offset[1])/resolution[1] - 1.0; ",
             "vColor = color/256.0;",
             "gl_Position = vec4(x, y, 0, 1.0);",
             "}"
@@ -159,7 +159,7 @@ const initRenderer = (function(canvas, options={}) {
 
 
         const uniforms = ["resolution"];
-        const attributes = [ "offset", "color", "x_vector", "y_vector"];
+        const attributes = [ "offset", "color", "x1", "y1"];
 
 
         uniforms.forEach(key => locations[key] = gl.getUniformLocation(program, key));
@@ -352,14 +352,14 @@ const initRenderer = (function(canvas, options={}) {
 
 
         gl.bindBuffer(gl.ARRAY_BUFFER, bezier_buffer);
-        gl.vertexAttribPointer(polygonLocations["x_vector"], 4, gl.FLOAT, false, 52, 0);
-        gl.vertexAttribPointer(polygonLocations["y_vector"], 4, gl.FLOAT, false, 52, 16);
+        gl.vertexAttribPointer(polygonLocations["x1"], 4, gl.FLOAT, false, 52, 0);
+        gl.vertexAttribPointer(polygonLocations["y1"], 4, gl.FLOAT, false, 52, 16);
         gl.vertexAttribPointer(polygonLocations["offset"], 4, gl.FLOAT, false, 52, 32);
         gl.vertexAttribPointer(polygonLocations["color"], 4, gl.FLOAT, false, 52, 40);
 
 
-        gl.vertexAttribDivisor(polygonLocations["x_vector"], 0);
-        gl.vertexAttribDivisor(polygonLocations["y_vector"], 0);
+        gl.vertexAttribDivisor(polygonLocations["x1"], 0);
+        gl.vertexAttribDivisor(polygonLocations["y1"], 0);
         gl.vertexAttribDivisor(polygonLocations["color"], 0);
         gl.vertexAttribDivisor(polygonLocations["offset"], 0);
 
