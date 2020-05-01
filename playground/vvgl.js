@@ -278,6 +278,20 @@ const initRenderer = (function(canvas, options={}) {
         gl.bufferData(gl.ARRAY_BUFFER, bezier_buffer_data, gl.DYNAMIC_DRAW);
 
 
+        polygonPointers();
+
+        polygonAttributes.forEach(function (attribute) {
+            gl.enableVertexAttribArray(polygonLocations[attribute]);
+        });
+
+
+        bezierPointers();
+
+        bezierAttributes.forEach(function (attribute) {
+            gl.enableVertexAttribArray(bezierLocations[attribute]);
+        });
+
+
 
 
         const num_buckets = 70;
@@ -323,6 +337,12 @@ const initRenderer = (function(canvas, options={}) {
         data.bucket_lengths = bucket_lengths;
 
         data.buckets = buckets;
+
+
+
+
+
+
 
 
     }
@@ -374,13 +394,10 @@ const initRenderer = (function(canvas, options={}) {
 
 
 
-        polygonAttributes.forEach(function (attribute) {
-            gl.enableVertexAttribArray(polygonLocations[attribute]);
-        });
 
     }
 
-    function bezerPointers() {
+    function bezierPointers() {
 
         gl.useProgram(bezierProgram);
 
@@ -404,9 +421,6 @@ const initRenderer = (function(canvas, options={}) {
         gl.vertexAttribDivisor(bezierLocations["color"], 1);
 
 
-        bezierAttributes.forEach(function (attribute) {
-            gl.enableVertexAttribArray(bezierLocations[attribute]);
-        });
 
 
 
@@ -478,7 +492,7 @@ const initRenderer = (function(canvas, options={}) {
 
         let offset = 0;
 
-        bezerPointers();
+        bezierPointers();
 
         gl.stencilOp( gl.KEEP,  gl.KEEP, gl.INVERT);
 
@@ -518,7 +532,7 @@ const initRenderer = (function(canvas, options={}) {
         offset = 0;
 
 
-        bezerPointers();
+        bezierPointers();
         gl.stencilOp(gl.KEEP, gl.KEEP, gl.KEEP);
 
         for(let i =0; i < data.num_buckets; i++){
