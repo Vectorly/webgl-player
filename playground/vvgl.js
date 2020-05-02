@@ -420,9 +420,9 @@ const initRenderer = (function(canvas, options={}) {
             let offset = data.offsets[shape_id]*13;
 
 
-            if(update.type === "hide") return data.bezier_buffer.fill(0, offset, offset + shape.max_curves*13);
+            data.bezier_buffer.fill(0, offset, offset + shape.max_curves*13);
 
-
+            if(update.type === "hide") return null;
 
             for(let j = 0; j < update.bezier_curves.length; j++){
                 let curve = update.bezier_curves[j];
