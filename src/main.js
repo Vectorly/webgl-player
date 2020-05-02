@@ -2,39 +2,31 @@ const vvgl = (function(canvas, options={}) {
 
 
     const gl = getContext(canvas);
-    var ext = gl.getExtension('OES_element_index_uint');
 
 
     const bezierProgram = initBezierProgram();
+    const polygonProgram = initPolygonProgram();
+
+    const t_buffer = gl.createBuffer();
+    const bezier_buffer = gl.createBuffer();
+    const element_array_index_buffer = gl.createBuffer();
 
     gl.useProgram(bezierProgram);
+    const {bezierLocations, bezierAttributes} = getBezierVariableLocations(bezierProgram);
+
+    gl.useProgram(polygonProgram);
+    const {polygonLocations, polygonAttributes} = getPolygonVariableLocations(polygonProgram);
 
 
-    const array_index = new Uint32Array(1000000);
+    const t_array = [];
 
 
-    array_index.forEach(function (el, i) {
-        array_index[i] = i;
-    });
-
-
-
-
-    const locations = getVariableLocations(bezierProgram);
-
-    let width = 2560;
-    let height=  1440;
-
-    let offset_h = 0;
-    let offset_w = 0;
+    const width = options.width || 2560;
+    const height= options.height || 1440;
 
     const  num_bezier_vertices = initBuffers();
 
 
-
-
-
-    let time = 0;
     let frame = 0;
 
     const data = {};
@@ -80,91 +72,28 @@ const vvgl = (function(canvas, options={}) {
 
         const gVertexShader = createAndCompileShader(gl.VERTEX_SHADER, [
 
+            "attribute vec4 t_vector;",
+            "attribute vec4 x_vector;",
+            "attribute vec4 y_vector;",
+            "attribute vec3 color;",
+            "attribute vec2 offset;",
 
-            "float unpack(vec4 v){",
-            "v *=255.0;   ",
-            "  float s = v.a >= 128.0 ? 1.0 : -1.0;",
-            "  float e = v.a - (v.a >= 128.0 ? 128.0 : 0.0) - 63.0;",
-            "  float m = 1.0 + v.x/256.0/256.0/256.0 + v.y/256.0/256.0 + v.z/256.0;",
-            "  return s * pow(2.0, e) * m;",
-            "}",
-
-            "vec2 unpack16(vec4 v){",
-            "v *=255.0;   ",
-            "  return vec2(256.0*v[0] + v[1], 256.0*v[2] + v[3]);",
-            "}",
-
-
-            "attribute float i;",
-            "uniform float bezier_modulo;",
-            "uniform float num_bezier_vertices;",
-            "uniform float vertex_modulo;",
-            "uniform sampler2D u_vertices;",
-            "uniform sampler2D u_bezier;",
-            "uniform sampler2D u_shape;",
             "uniform vec2 resolution;",
-            "uniform vec2 camera_offset;",
-            "varying lowp vec4 vColor;",
-
-            "vec2 bezier_point(float bezier_index, float j){",
-            "float h =  floor((bezier_index*6.0 + j ) / bezier_modulo);",
-            "float w = (bezier_index*6.0 + j) - h*bezier_modulo;",
-            "vec4 data = texture2D(u_bezier, vec2((w)/bezier_modulo, (h)/bezier_modulo));",
-            "return unpack16(data);",
-            "}",
-
-            "float get_t_vec_value(float vertex_index, float j){",
-            "float h =  floor((vertex_index*4.0 + j ) / vertex_modulo);",
-            "float w = (vertex_index*4.0 + j) - h*vertex_modulo;",
-            "vec4 data = texture2D(u_vertices, vec2((w)/vertex_modulo, (h)/vertex_modulo));",
-            "return unpack(data);",
-            "}",
-            "vec4 get_t_vec(float vertex_index){",
-
-            "float tA = get_t_vec_value(vertex_index, 0.0);",
-            "float tB = get_t_vec_value(vertex_index, 1.0);",
-            "float tC = get_t_vec_value(vertex_index, 2.0);",
-            "float tD = get_t_vec_value(vertex_index, 3.0);",
-            "return vec4(tA, tB, tC, tD)/pow(2.0, 24.0);",
-            "}",
-
+            "varying lowp vec3 vColor;",
 
             "void main(void) {",
 
-
-            "float bezier_index =  floor(i / num_bezier_vertices);",
-            "float vertex_index =  i- bezier_index*num_bezier_vertices;",
-
-            "vec4 t_vector = get_t_vec(vertex_index);",
-
-            "vec2 p1 = bezier_point(bezier_index, 0.0);",
-            "vec2 c1 = bezier_point(bezier_index, 1.0);",
-            "vec2 c2 = bezier_point(bezier_index, 2.0);",
-            "vec2 p2 = bezier_point(bezier_index, 3.0);",
-            "vec2 offset = bezier_point(bezier_index, 4.0);",
-
-
-            "vec4 x_vector = vec4(p1[0], c1[0], c2[0], p2[0]);",
-            "vec4 y_vector = vec4(p1[1], c1[1], c2[1], p2[1]);",
-
-            "float x = 2.0*(dot(t_vector, x_vector) + offset[0] + camera_offset[0])/resolution[0] - 1.0;",
-            "float y = 2.0*(dot(t_vector, y_vector) + offset[1] - camera_offset[1])/resolution[1] - 1.0;",
-
-
-            "float h =  floor((bezier_index*6.0 + 5.0 ) / bezier_modulo);",
-            "float w = (bezier_index*6.0 + 5.0) - h*bezier_modulo;",
-
-            "vColor = texture2D(u_bezier, vec2((w+0.5)/bezier_modulo, (h+0.5)/bezier_modulo));",
-
-            "gl_Position = vec4(x, y, 0, 1);",
+            "vec2 point = (vec2(dot(t_vector, x_vector), dot(t_vector, y_vector)) + offset)*resolution - 1.0;",
+            "vColor = color/256.0;",
+            "gl_Position = vec4(point, 0, 1);",
             "}"
         ].join("\n"));
 
 
         let gFragmentShader = createAndCompileShader(gl.FRAGMENT_SHADER, [
-            "varying lowp vec4 vColor;",
+            "varying lowp vec3 vColor;",
             "void main(void) {",
-            "gl_FragColor = vec4(vColor.x, vColor.y, vColor.z, 1.0);",
+            "gl_FragColor = vec4(vColor, 1);",
             "}"
         ].join("\n"));
 
@@ -173,68 +102,80 @@ const vvgl = (function(canvas, options={}) {
     }
 
 
-    function getVariableLocations(program) {
+
+
+    function initPolygonProgram() {
+
+        let gVertexShader = createAndCompileShader(gl.VERTEX_SHADER, [
+            "attribute float x1;",
+            "attribute float y1;",
+            "attribute vec3 color;",
+            "attribute vec2 offset;",
+            "uniform vec2 resolution;",
+            "varying lowp vec3 vColor;",
+            "void main(void) {",
+
+            "vec2 point = (vec2(x1, y1)+offset)*resolution - 1.0; ",
+
+            "vColor = color/256.0;",
+            "gl_Position = vec4(point, 0, 1.0);",
+            "}"
+        ].join("\n"));
+
+        let gFragmentShader = createAndCompileShader(gl.FRAGMENT_SHADER, [
+            "varying lowp vec3 vColor;",
+            "void main(void) {",
+            "gl_FragColor = vec4(vColor, 1);",
+            "}"
+        ].join("\n"));
+
+        return createAndLinkProgram(gVertexShader, gFragmentShader);
+    }
+
+
+    function getBezierVariableLocations(program) {
 
         const locations = {};
 
 
-        const uniforms = ["num_bezier_vertices", "u_vertices", "u_bezier", "bezier_modulo", "resolution", "vertex_modulo", "camera_offset"];
-        const attributes = ["i"];
+        const uniforms = ["resolution"];
+        const attributes = ["t_vector", "x_vector", "y_vector",  "offset", "color"];
+
 
         uniforms.forEach(key => locations[key] = gl.getUniformLocation(program, key));
         attributes.forEach(key => locations[key] = gl.getAttribLocation(program, key));
 
-        return locations;
+
+
+        return {bezierLocations: locations, bezierAttributes: attributes};
 
     }
 
-    function fract(x){
-        return x - Math.floor(x);
-    }
-
-    function packFloat(x) {
-
-        if(x ===0) return [0, 0, 0, 0];
-
-        let s = x > 0 ? 1 : -1;
-        let e = Math.floor(Math.log(s*x) / Math.LN2);
-        let m = s*x/Math.pow(2, e);
-
-        const data = new Array(4);
-
-        data[0] = Math.floor(fract((m-1)*256*256)*256)||0;
-        data[1] = Math.floor(fract((m-1)*256)*256)||0;
-        data[2] = Math.floor(fract((m-1))*256)||0;
-        data[3] = ((e+63) + (x>0?128:0))||0;
 
 
-        return data;
+    function getPolygonVariableLocations(program) {
+
+        const locations = {};
+
+
+        const uniforms = ["resolution"];
+        const attributes = [ "offset", "color", "x1", "y1"];
+
+
+        uniforms.forEach(key => locations[key] = gl.getUniformLocation(program, key));
+        attributes.forEach(key => locations[key] = gl.getAttribLocation(program, key));
+
+
+        return {polygonLocations: locations, polygonAttributes: attributes};
 
     }
+
 
 
     function initBuffers() {
 
 
-
-
-        const index_array = new Float32Array(1000000);
-
-        index_array.forEach(function (el, i) {
-            index_array[i] = i;
-        });
-
-        const index_buffer = gl.createBuffer();
-        gl.bindBuffer(gl.ARRAY_BUFFER, index_buffer);
-        gl.bufferData(gl.ARRAY_BUFFER, index_array, gl.STATIC_DRAW);
-        gl.vertexAttribPointer(locations["i"], 1, gl.FLOAT, false, 0, 0);
-
-
-
-
         let step = 5;
-
-        const t_array = [];
 
 
         for (let i=0; i <= step; i++){
@@ -249,52 +190,12 @@ const vvgl = (function(canvas, options={}) {
         }
 
 
-        let num_bezier_vertices = t_array.length/4;
-        gl.uniform1f(locations["num_bezier_vertices"], num_bezier_vertices);
 
-        const bezierVertexArray = gl.createTexture();
-        gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, bezierVertexArray);
-        const textureSize = fitTextureSide(num_bezier_vertices*4);
-
-        gl.uniform1f(locations["vertex_modulo"], textureSize);
-
-        const buffer_data = new Uint8Array(textureSize*textureSize*4);
-
-        for(let i =0; i < t_array.length; i++){
-
-            const data = packFloat(Math.floor(t_array[i]*Math.pow(2, 24)));
-
-            buffer_data[4*i] = data[0];
-            buffer_data[4*i+1] = data[1];
-            buffer_data[4*i+2] = data[2];
-            buffer_data[4*i+3] = data[3];
-
-        }
-
-
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-
-
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, textureSize, textureSize, 0, gl.RGBA, gl.UNSIGNED_BYTE, buffer_data);
-
-
-        gl.uniform1i(locations["u_vertices"], 0);
-
-
-        gl.uniform2fv(locations["resolution"], [width, height]);
-
-        return num_bezier_vertices;
+        return t_array.length/4;
 
 
     }
 
-    function fitTextureSide(elements){
-        return Math.pow(2, Math.ceil(Math.log(Math.sqrt(elements))/Math.log(2)));
-    }
 
 
     function prepareCanvas() {
@@ -302,169 +203,131 @@ const vvgl = (function(canvas, options={}) {
         gl.enable(gl.STENCIL_TEST);
         gl.enable(gl.DEPTH_TEST);
         gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
-        window.gl  = gl;
 
-        gl.enableVertexAttribArray(locations["i"]);
+
+
+        gl.useProgram(polygonProgram);
+        gl.uniform2fv(polygonLocations["resolution"], [2/width, 2/height]);
+
+        gl.useProgram(bezierProgram);
+        gl.uniform2fv(bezierLocations["resolution"], [2/width, 2/height]);
 
     }
 
 
-    function setBezierTexture(json) {
+    function setBezierData(json) {
 
 
-        const total_bezier_curves = json.num_bezier_curves;
-        const bezierTexture = gl.createTexture();
-        gl.activeTexture(gl.TEXTURE1);
-        gl.bindTexture(gl.TEXTURE_2D, bezierTexture);
-
-        const bezier_array_size = fitTextureSide(total_bezier_curves*6);
-
-        gl.uniform1f(locations["bezier_modulo"] , bezier_array_size);
-
-        data.bezier_array_size = bezier_array_size;
-
-        const bezier_buffer_data = new Uint8Array(bezier_array_size*bezier_array_size*4);
-
+        const bezier_buffer_data = new Float32Array(json.num_bezier_curves*13);
 
         const foreground_shapes = json.foreground_shapes;
         const background_shapes = json.background_shapes;
+
         let offset = 0;
         let curves = 0;
 
+        let background_offset = 0;
 
-        const offsets = new Array(foreground_shapes.length);
+
+        const shapes = [...foreground_shapes, ...background_shapes];
 
 
-        for(let i =0; i <foreground_shapes.length; i++){
+        // Just to remove that one error
+        shapes[shapes.length-1].contour_lengths[0] = shapes[shapes.length-1].contour_lengths[0]-1;
 
-            let shape = foreground_shapes[i];
+        const offsets = new Array(shapes.length);
+
+
+        for(let i =0; i <shapes.length; i++){
+
+            let shape = shapes[i];
+
+            shapes[i].offset = offset;
 
             offsets[i] = offset;
 
+            if(!shape.foreground && !background_offset) background_offset = offset;
+
 
             for(let j = 0; j < shape.bezier_curves.length; j++){
                 let curve = shape.bezier_curves[j];
 
-                let idx = offset + j*24;
+                let idx = offset*13 + j*13;
 
                 if(!shape.hidden) bezier_buffer_data.set(curve, idx);
 
-                bezier_buffer_data.set(shape.data, idx+16);
+                bezier_buffer_data.set(shape.data, idx+8);
                 curves++;
 
             }
 
-            offset += 24*shape.max_curves;
+            offset += shape.max_curves;
 
         }
+
+
+
+        for(let i =0; i <shapes.length; i++){
+
+
+            shapes[i].contour_offsets = new Array(shapes[i].contour_lengths.length);
+
+            let contour_offset= shapes[i].offset;
+
+
+            for(let j = 0; j < shapes[i].contour_lengths.length; j++){
+
+                shapes[i].contour_offsets[j] = contour_offset;
+
+                contour_offset += shapes[i].contour_lengths[j];
+            }
+
+
+
+        }
+
 
         data.offsets = offsets;
 
-
-        for(let i =0; i <background_shapes.length; i++){
-
-            let shape = background_shapes[i];
-
-            for(let j = 0; j < shape.bezier_curves.length; j++){
-                let curve = shape.bezier_curves[j];
-                let idx = offset + j*24;
-                bezier_buffer_data.set(curve, idx);
-                bezier_buffer_data.set(shape.data, idx+16);
-                curves++;
-            }
-
-            offset += 24*shape.max_curves;
-
-        }
-
-
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-
-
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, bezier_array_size, bezier_array_size, 0, gl.RGBA, gl.UNSIGNED_BYTE, bezier_buffer_data);
-
-
         data.bezier_buffer = bezier_buffer_data;
 
-        gl.uniform1i(locations["u_bezier"], 1);
-
-        offset = 0;
+        data.foreground_length = background_offset*13;
 
 
-        const index_offsets = new Array(foreground_shapes.length);
-
-        for(let i =0; i <foreground_shapes.length; i++){
-
-            index_offsets[i] = offset;
-
-            let shape = foreground_shapes[i];
-
-            let this_offset = 0;
-
-            for(let j =0; j < shape.contour_lengths.length; j++){
-
-                let l = num_bezier_vertices*shape.contour_lengths[j];
-
-                if(l > 0){
-                    array_index[offset + this_offset + l] = 0xffffffff;
-                    this_offset +=l;
-                }
-
-            }
-
-            offset += num_bezier_vertices*shape.max_curves;
-            array_index[offset] = 0xffffffff;
-        }
-
-        data.index_offsets = index_offsets;
+        gl.bindBuffer(gl.ARRAY_BUFFER, t_buffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(t_array), gl.STATIC_DRAW);
 
 
-        data.foreground_length = JSON.parse(JSON.stringify(offset));
+        gl.bindBuffer(gl.ARRAY_BUFFER, bezier_buffer);
+        gl.bufferData(gl.ARRAY_BUFFER, bezier_buffer_data, gl.DYNAMIC_DRAW);
 
 
-        for(let i =0; i <background_shapes.length; i++){
+        polygonPointers();
 
-            let shape = background_shapes[i];
+        polygonAttributes.forEach(function (attribute) {
+            gl.enableVertexAttribArray(polygonLocations[attribute]);
+        });
 
-            let this_offset = 0;
 
-            for(let j =0; j < shape.contour_lengths.length; j++){
+        bezierPointers();
 
-                let l = num_bezier_vertices*shape.contour_lengths[j];
-
-                if(l > 0){
-                    array_index[offset + this_offset + l] = 0xffffffff;
-                    this_offset +=l;
-                }
-
-            }
-
-            offset += num_bezier_vertices*shape.max_curves;
-            array_index[offset] = 0xffffffff;
-        }
+        bezierAttributes.forEach(function (attribute) {
+            gl.enableVertexAttribArray(bezierLocations[attribute]);
+        });
 
 
 
 
-        const element_array_index_buffer = gl.createBuffer();
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, element_array_index_buffer);
-        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, array_index, gl.STATIC_DRAW);
-
-        data.index_buffer = element_array_index_buffer;
-
-
-        const num_buckets = 150;
+        const num_buckets = 70;
 
         data.num_buckets = num_buckets;
 
-        const shapes = [...foreground_shapes, ...background_shapes];
 
         const shapes_per_bucket = Math.ceil(shapes.length / num_buckets);
 
         const bucket_lengths = new Array(num_buckets);
+
+        const buckets = new Array(num_buckets);
 
         for(let i = 0; i < num_buckets; i++){
 
@@ -478,21 +341,38 @@ const vvgl = (function(canvas, options={}) {
                 shapes_in_this_bucket = shapes.slice(i*shapes_per_bucket, (i+1)*shapes_per_bucket);
             }
 
+
             let curves_this_shape = 0;
 
             shapes_in_this_bucket.forEach(function (shape) {
-                curves_this_shape +=shape.max_curves;
+
+                curves_this_shape += shape.max_curves;
+
             });
 
 
             bucket_lengths[i] = curves_this_shape;
+
+            buckets[i] = shapes_in_this_bucket;
 
         }
 
 
         data.bucket_lengths = bucket_lengths;
 
+        data.buckets = buckets;
+
+
+
+
+
+
+
+
     }
+
+
+
 
 
 
@@ -504,44 +384,23 @@ const vvgl = (function(canvas, options={}) {
         data.num_bezier_curves = json.num_bezier_curves;
         data.updates = json.updates;
 
-        if(json.scene) setCamera(json.scene);
+        data.shapes = json.foreground_shapes;
 
-        setBezierTexture(json);
-    }
-
-    function setCamera(scene) {
-
-
-
-        width = scene.width;
-        height = scene.height;
-
-
-        offset_w = scene.offset_w;
-        offset_h = scene.offset_h;
-
-
-        gl.uniform2fv(locations["resolution"], [width, height]);
-        gl.uniform2fv(locations["camera_offset"], [offset_w, offset_h]);
-
-
-
+        setBezierData(json);
     }
 
 
     function updateCamera(update) {
 
-        width = update.w - update.x;
-        height = update.h - update.y;
 
-        gl.uniform2fv(locations["resolution"], [width, height]);
-        gl.uniform2fv(locations["camera_offset"], [offset_w - update.x, offset_h + update.y]);
 
     }
+
 
     function update(time) {
 
         frame ++;
+
 
 
         const updates = data.updates[frame];
@@ -556,85 +415,170 @@ const vvgl = (function(canvas, options={}) {
             let shape_id = update.i;
 
 
-            let shape = data.foreground_shapes[shape_id];
+            let shape = data.shapes[shape_id];
 
-            let offset = data.offsets[shape_id];
+            let offset = data.offsets[shape_id]*13;
 
 
-            if(update.type === "hide") return data.bezier_buffer.fill(0, offset, offset + shape.max_curves*24);
+            data.bezier_buffer.fill(0, offset, offset + shape.max_curves*13);
 
-            data.bezier_buffer.fill(0, offset, offset + shape.max_curves*24);
+            if(update.type === "hide") return null;
 
             for(let j = 0; j < update.bezier_curves.length; j++){
                 let curve = update.bezier_curves[j];
 
-                let idx = offset + j*24;
+                let idx = offset + j*13;
 
                 data.bezier_buffer.set(curve, idx);
 
-                data.bezier_buffer.set(shape.data, idx+16);
+                data.bezier_buffer.set(shape.data, idx+8);
 
             }
 
 
-            offset = data.index_offsets[shape_id];
-
             if(update.type === "morph") {
 
-                let this_offset = 0;
 
-                for(let j =0; j < shape.contour_lengths.length; j++){
+                let contour_offsets = new Array(update.contour_lengths.length);
 
-                    let l = num_bezier_vertices*shape.contour_lengths[j];
+                let contour_offset= shape.offset;
 
-                    if(l > 0){
-                        array_index[offset + this_offset + l] =  offset + this_offset + l;
-                        this_offset +=l;
-                    }
+
+                for(let j = 0; j < update.contour_lengths.length; j++){
+
+                    contour_offsets[j] = contour_offset;
+                    contour_offset += update.contour_lengths[j];
                 }
 
 
-                this_offset = 0;
-
-                for(let j =0; j < update.contour_lengths.length; j++){
-
-                    let l = num_bezier_vertices*update.contour_lengths[j];
-
-                    if(l > 0){
-                        array_index[offset + this_offset + l] = 0xffffffff;
-                        this_offset +=l;
-                    }
-                }
-
-                array_index[offset] = 0xffffffff;
-
-                array_index[offset + num_bezier_vertices*shape.max_curves] = 0xffffffff;
-
-                data.foreground_shapes[shape_id].contour_lengths = update.contour_lengths;
+                data.shapes[shape_id].contour_lengths = update.contour_lengths;
+                data.shapes[shape_id].contour_offsets = contour_offsets;
 
             }
 
         });
 
 
-        gl.texSubImage2D(gl.TEXTURE_2D, 0, 0 , 0,data.bezier_array_size, data.bezier_array_size,  gl.RGBA, gl.UNSIGNED_BYTE, data.bezier_buffer, 0);
 
-        gl.bufferSubData(gl.ELEMENT_ARRAY_BUFFER, 0, array_index, 0, data.foreground_length);
+        gl.bufferSubData(gl.ARRAY_BUFFER, 0, data.bezier_buffer, 0, data.foreground_length);
 
 
+    }
+
+    function polygonPointers() {
+
+        gl.useProgram(polygonProgram);
+
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, bezier_buffer);
+        gl.vertexAttribPointer(polygonLocations["x1"], 4, gl.FLOAT, false, 52, 0);
+        gl.vertexAttribPointer(polygonLocations["y1"], 4, gl.FLOAT, false, 52, 16);
+        gl.vertexAttribPointer(polygonLocations["offset"], 4, gl.FLOAT, false, 52, 32);
+        gl.vertexAttribPointer(polygonLocations["color"], 4, gl.FLOAT, false, 52, 40);
+
+
+        gl.vertexAttribDivisor(polygonLocations["x1"], 0);
+        gl.vertexAttribDivisor(polygonLocations["y1"], 0);
+        gl.vertexAttribDivisor(polygonLocations["color"], 0);
+        gl.vertexAttribDivisor(polygonLocations["offset"], 0);
+
+
+
+
+
+    }
+
+    function bezierPointers() {
+
+        gl.useProgram(bezierProgram);
+
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, t_buffer);
+        gl.vertexAttribPointer(bezierLocations["t_vector"], 4, gl.FLOAT, false, 0, 0);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, bezier_buffer);
+
+        gl.vertexAttribPointer(bezierLocations["x_vector"], 4, gl.FLOAT, false, 52, 0);
+        gl.vertexAttribDivisor(bezierLocations["x_vector"], 1);
+
+        gl.vertexAttribPointer(bezierLocations["y_vector"], 4, gl.FLOAT, false, 52, 16);
+        gl.vertexAttribDivisor(bezierLocations["y_vector"], 1);
+
+        gl.vertexAttribPointer(bezierLocations["offset"], 4, gl.FLOAT, false, 52, 32);
+        gl.vertexAttribDivisor(bezierLocations["offset"], 1);
+
+
+        gl.vertexAttribPointer(bezierLocations["color"], 4, gl.FLOAT, false, 52, 40);
+        gl.vertexAttribDivisor(bezierLocations["color"], 1);
+
+
+
+
+
+
+    }
+
+
+    function renderShapes(shapes) {
+
+        shapes.forEach(function (shape) {
+
+            for (let i = 0; i < shape.contour_lengths.length; i++){
+                gl.drawArrays(gl.TRIANGLE_FAN, shape.contour_offsets[i],  shape.contour_lengths[i] );
+            }
+
+        });
+    }
+
+
+    function renderBeziers(offset, i) {
+
+
+        if(data.bucket_lengths[i] > 0){
+
+            gl.vertexAttribPointer(bezierLocations["x_vector"], 4, gl.FLOAT, false, 52, 52*offset);
+            gl.vertexAttribPointer(bezierLocations["y_vector"], 4, gl.FLOAT, false, 52, 16 + 52*offset);
+            gl.vertexAttribPointer(bezierLocations["offset"], 4, gl.FLOAT, false, 52, 32 + 52*offset);
+            gl.vertexAttribPointer(bezierLocations["color"], 4, gl.FLOAT, false, 52, 40 + 52*offset);
+
+            gl.drawArraysInstanced(gl.TRIANGLE_FAN,  0, num_bezier_vertices, data.bucket_lengths[i]-1);
+
+        }
+
+
+        return offset + data.bucket_lengths[i];
     }
 
     function render() {
 
         gl.clearColor(0, 0, 0, 1.0);
-
+        gl.clear( gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT);
 
 
         gl.stencilOp(gl.KEEP, gl.KEEP, gl.INVERT);
 
-        let offset = 0;
-        let l = 0;
+        polygonPointers();
 
+        for(let i =0; i < data.num_buckets; i++){
+
+            const shapes = data.buckets[i];
+
+            gl.stencilFunc(gl.ALWAYS, i+1 , 0xff);
+            gl.stencilMask(i+1);
+            gl.depthMask(false);
+            gl.colorMask(false, false, false, false);
+
+            renderShapes(shapes);
+
+
+
+        }
+
+        let offset = 0;
+
+        bezierPointers();
+
+        gl.stencilOp( gl.KEEP,  gl.KEEP, gl.INVERT);
 
         for(let i =0; i < data.num_buckets; i++){
 
@@ -643,38 +587,48 @@ const vvgl = (function(canvas, options={}) {
             gl.depthMask(false);
             gl.colorMask(false, false, false, false);
 
-            l = num_bezier_vertices*data.bucket_lengths[i];
-            gl.drawElements(gl.TRIANGLE_FAN, l,  gl.UNSIGNED_INT, offset);
-
-            offset += l*4;
+            offset =  renderBeziers(offset, i);
 
         }
 
+
+        polygonPointers();
 
 
         gl.stencilOp(gl.KEEP, gl.KEEP, gl.KEEP);
 
 
-        offset = 0;
+        for(let i =0; i < data.num_buckets; i++){
 
-        for(let i =0; i <  data.num_buckets; i++){
+            const shapes = data.buckets[i];
 
-            gl.stencilFunc(gl.EQUAL, i+1 , 0xff);
+            gl.stencilFunc(gl.EQUAL, (i+1) , 0xff);
             gl.stencilMask(i+1);
             gl.depthMask(false);
             gl.colorMask(true, true, true, true);
 
-            l = num_bezier_vertices*data.bucket_lengths[i];
-            gl.drawElements(gl.TRIANGLE_FAN, l,  gl.UNSIGNED_INT, offset);
 
-            offset += l*4;
+            renderShapes(shapes);
 
         }
 
 
-        gl.clear( gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT);
+        offset = 0;
 
-     //   gl.flush();
+
+        bezierPointers();
+        gl.stencilOp(gl.KEEP, gl.KEEP, gl.KEEP);
+
+        for(let i =0; i < data.num_buckets; i++){
+
+            gl.stencilFunc(gl.EQUAL, i+1 , 0xff);
+            gl.stencilMask(255-(i+1));
+            gl.depthMask(false);
+            gl.colorMask(true, true, true, true);
+
+            offset =  renderBeziers(offset, i);
+
+        }
 
     }
 
@@ -691,6 +645,7 @@ const vvgl = (function(canvas, options={}) {
 
     function play() {
 
+        render();
 
         window.requestAnimationFrame(step);
 

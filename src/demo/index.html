@@ -41,6 +41,7 @@ function packInt16(x) {
 const renderer = vvgl("glcanvas");
 
 
+
 loadJSON("data.json", function (json) {
 
 
@@ -66,7 +67,8 @@ loadJSON("data.json", function (json) {
 
             let contour = shape.contours[i];
 
-            contour_lengths.push(contour.length);
+            if(contour.length > 0) contour_lengths.push(contour.length);
+
             for(let j = 0; j < contour.length; j++ ){
 
                 let curve  = [];
@@ -74,19 +76,17 @@ loadJSON("data.json", function (json) {
                 if(contour[j].length ===4) {
                     number_lines++;
 
-                    curve = [contour[j][0], contour[j][1],  contour[j][0], contour[j][1], contour[j][2], contour[j][3], contour[j][2], contour[j][3]];
+                    curve = [contour[j][0], contour[j][0],  contour[j][2], contour[j][2], contour[j][1], contour[j][1], contour[j][3], contour[j][3]];
 
                 } else{
-                    curve = contour[j];
+                    curve = [contour[j][0], contour[j][2],  contour[j][4], contour[j][6], contour[j][1], contour[j][3], contour[j][5], contour[j][7]];
                 }
 
 
                 let curve_points = [];
 
                 for(let k = 0; k < 8; k++){
-                    let packed = packInt16(curve[k]);
-                    curve_points.push(packed[0], packed[1]);
-
+                    curve_points.push(curve[k]);
                 }
 
 
@@ -100,10 +100,8 @@ loadJSON("data.json", function (json) {
         }
 
 
-        let xpacked = packInt16(shape.xy[0]);
-        let ypacked = packInt16(shape.xy[1]);
 
-        shape.data = [xpacked[0], xpacked[1], ypacked[0], ypacked[1], shape.color[0], shape.color[1], shape.color[2]];
+        shape.data = [shape.xy[0], shape.xy[1],  shape.color[0], shape.color[1], shape.color[2]];
 
 
 
@@ -122,12 +120,8 @@ loadJSON("data.json", function (json) {
 
         if(!frame_update) return null;
 
-
-
         frame_update.forEach(function (update) {
 
-
-            if(update.type === "camera") return null;
 
             if(update.type === "hide") return null;
             if(update.type === "show") {
@@ -144,7 +138,7 @@ loadJSON("data.json", function (json) {
 
                 let contour = update.contours[i];
 
-                contour_lengths.push(contour.length);
+                if(contour.length > 0) contour_lengths.push(contour.length);
                 for(let j = 0; j < contour.length; j++ ){
 
                     let curve  = [];
@@ -152,26 +146,23 @@ loadJSON("data.json", function (json) {
                     if(contour[j].length ===4) {
                         number_lines++;
 
-                        curve = [contour[j][0], contour[j][1],  contour[j][0], contour[j][1], contour[j][2], contour[j][3], contour[j][2], contour[j][3]];
+                        curve = [contour[j][0], contour[j][0],  contour[j][2], contour[j][2], contour[j][1], contour[j][1], contour[j][3], contour[j][3]];
 
                     } else{
-                        curve = contour[j];
+                        curve = [contour[j][0], contour[j][2],  contour[j][4], contour[j][6], contour[j][1], contour[j][3], contour[j][5], contour[j][7]];
                     }
 
 
                     let curve_points = [];
 
                     for(let k = 0; k < 8; k++){
-                        let packed = packInt16(curve[k]);
-                        curve_points.push(packed[0], packed[1]);
-
+                        curve_points.push(curve[k]);
                     }
 
 
                     if(curve_points.length  > 0){
                         bezier_curves.push(curve_points);
                     }
-
 
                 }
 
@@ -194,7 +185,6 @@ loadJSON("data.json", function (json) {
         foreground_shapes: foreground_shapes,
         background_shapes: background_shapes,
         updates: updates,
-        scene: json.scene,
         num_bezier_curves: json.num_curves
     });
 
@@ -203,8 +193,6 @@ loadJSON("data.json", function (json) {
     renderer.play();
 
 });
-
-
 
 
 
