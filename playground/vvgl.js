@@ -226,6 +226,8 @@ const initRenderer = (function(canvas, options={}) {
         let offset = 0;
         let curves = 0;
 
+        let background_offset = 0;
+
 
         const shapes = [...foreground_shapes, ...background_shapes];
 
@@ -243,6 +245,8 @@ const initRenderer = (function(canvas, options={}) {
             shapes[i].offset = offset;
 
             offsets[i] = offset;
+
+            if(!shape.foreground && !background_offset) background_offset = offset;
 
 
             for(let j = 0; j < shape.bezier_curves.length; j++){
@@ -287,7 +291,7 @@ const initRenderer = (function(canvas, options={}) {
 
         data.bezier_buffer = bezier_buffer_data;
 
-
+        data.foreground_length = background_offset*13;
 
 
         gl.bindBuffer(gl.ARRAY_BUFFER, t_buffer);
@@ -385,11 +389,78 @@ const initRenderer = (function(canvas, options={}) {
         setBezierData(json);
     }
 
+
+    function updateCamera(update) {
+
+
+
+    }
+
+
     function update(time) {
 
         frame ++;
 
-        return null;
+
+
+        const updates = data.updates[frame];
+
+        if(!updates) return null;
+
+        updates.forEach(function (update) {
+
+
+            if(update.type === "camera") return updateCamera(update);
+
+            let shape_id = update.i;
+
+
+            let shape = data.shapes[shape_id];
+
+            let offset = data.offsets[shape_id]*13;
+
+
+            if(update.type === "hide") return data.bezier_buffer.fill(0, offset, offset + shape.max_curves*13);
+
+
+
+            for(let j = 0; j < update.bezier_curves.length; j++){
+                let curve = update.bezier_curves[j];
+
+                let idx = offset + j*13;
+
+                data.bezier_buffer.set(curve, idx);
+
+                data.bezier_buffer.set(shape.data, idx+8);
+
+            }
+
+
+            if(update.type === "morph") {
+
+
+                let contour_offsets = new Array(update.contour_lengths.length);
+
+                let contour_offset= shape.offset;
+
+
+                for(let j = 0; j < shape.contour_lengths.length; j++){
+
+                    contour_offsets[j] = contour_offset;
+                    contour_offset += shape.contour_lengths[j];
+                }
+
+
+                data.shapes[shape_id].contour_lengths = update.contour_lengths;
+                data.shapes[shape_id].contour_offsets = contour_offsets;
+
+            }
+
+        });
+
+
+
+        gl.bufferSubData(gl.ARRAY_BUFFER, 0, data.bezier_buffer, 0, data.foreground_length);
 
 
     }
@@ -566,7 +637,7 @@ const initRenderer = (function(canvas, options={}) {
         update();
         render();
 
-        if(frame < 200) return window.requestAnimationFrame(step);
+        if(frame < data.updates.length) return window.requestAnimationFrame(step);
         else{
             console.log(`Done`);
         }
