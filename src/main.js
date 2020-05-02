@@ -27,6 +27,19 @@ const vvgl = (function(canvas, options={}) {
     let offset_w = 0;
     let offset_h = 0;
 
+
+
+
+    const array_index = new Uint16Array(50000);
+
+
+    array_index.forEach(function (el, i) {
+        array_index[i] = i;
+    });
+
+
+
+
     const  num_bezier_vertices = initBuffers();
 
 
@@ -313,6 +326,11 @@ const vvgl = (function(canvas, options={}) {
         });
 
 
+        const element_array_index_buffer = gl.createBuffer();
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, element_array_index_buffer);
+        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, array_index, gl.STATIC_DRAW);
+
+
         bezierPointers();
 
         bezierAttributes.forEach(function (attribute) {
@@ -453,6 +471,7 @@ const vvgl = (function(canvas, options={}) {
         frame ++;
 
 
+        return null;
 
         const updates = data.updates[frame];
 
@@ -575,7 +594,9 @@ const vvgl = (function(canvas, options={}) {
         shapes.forEach(function (shape) {
 
             for (let i = 0; i < shape.contour_lengths.length; i++){
-                gl.drawArrays(gl.TRIANGLE_FAN, shape.contour_offsets[i],  shape.contour_lengths[i] );
+
+                gl.drawElements(gl.TRIANGLE_FAN, shape.contour_lengths[i],  gl.UNSIGNED_SHORT, shape.contour_offsets[i]*2);
+                //   gl.drawArrays(gl.TRIANGLE_FAN, shape.contour_offsets[i],  shape.contour_lengths[i] );
             }
 
         });
