@@ -21,8 +21,11 @@ const vvgl = (function(canvas, options={}) {
     const t_array = [];
 
 
-    const width = options.width || 2560;
-    const height= options.height || 1440;
+    let width = 2560;
+    let height= 1440;
+
+    let offset_w = 0;
+    let offset_h = 0;
 
     const  num_bezier_vertices = initBuffers();
 
@@ -77,13 +80,13 @@ const vvgl = (function(canvas, options={}) {
             "attribute vec4 y_vector;",
             "attribute vec3 color;",
             "attribute vec2 offset;",
-
+            "uniform vec2 camera_offset;",
             "uniform vec2 resolution;",
             "varying lowp vec3 vColor;",
 
             "void main(void) {",
 
-            "vec2 point = (vec2(dot(t_vector, x_vector), dot(t_vector, y_vector)) + offset)*resolution - 1.0;",
+            "vec2 point = (vec2(dot(t_vector, x_vector), dot(t_vector, y_vector)) + offset + camera_offset)*resolution - 1.0;",
             "vColor = color/256.0;",
             "gl_Position = vec4(point, 0, 1);",
             "}"
@@ -112,10 +115,11 @@ const vvgl = (function(canvas, options={}) {
             "attribute vec3 color;",
             "attribute vec2 offset;",
             "uniform vec2 resolution;",
+            "uniform vec2 camera_offset;",
             "varying lowp vec3 vColor;",
             "void main(void) {",
 
-            "vec2 point = (vec2(x1, y1)+offset)*resolution - 1.0; ",
+            "vec2 point = (vec2(x1, y1)+offset + camera_offset)*resolution - 1.0; ",
 
             "vColor = color/256.0;",
             "gl_Position = vec4(point, 0, 1.0);",
@@ -138,7 +142,7 @@ const vvgl = (function(canvas, options={}) {
         const locations = {};
 
 
-        const uniforms = ["resolution"];
+        const uniforms = ["resolution", "camera_offset"];
         const attributes = ["t_vector", "x_vector", "y_vector",  "offset", "color"];
 
 
@@ -158,7 +162,7 @@ const vvgl = (function(canvas, options={}) {
         const locations = {};
 
 
-        const uniforms = ["resolution"];
+        const uniforms = ["resolution", "camera_offset"];
         const attributes = [ "offset", "color", "x1", "y1"];
 
 
@@ -387,10 +391,57 @@ const vvgl = (function(canvas, options={}) {
         data.shapes = json.foreground_shapes;
 
         setBezierData(json);
+
+
+        if(json.scene) setCamera(json.scene);
+    }
+
+
+    function setCamera(scene) {
+
+
+
+        width = scene.width;
+        height = scene.height;
+
+
+        offset_w = scene.offset_w;
+        offset_h = scene.offset_h;
+
+
+        gl.useProgram(polygonProgram);
+        gl.uniform2fv(polygonLocations["resolution"], [2/width, 2/height]);
+        gl.uniform2fv(polygonLocations["camera_offset"], [offset_w, offset_h]);
+
+        gl.useProgram(bezierProgram);
+        gl.uniform2fv(bezierLocations["resolution"], [2/width, 2/height]);
+        gl.uniform2fv(bezierLocations["camera_offset"], [offset_w, offset_h]);
+
+
+
+
+
+
     }
 
 
     function updateCamera(update) {
+
+        width = update.w - update.x;
+        height = update.h - update.y;
+
+        let offset_x = offset_w - update.x;
+        let offset_y = offset_h - update.y-260;
+
+
+
+        gl.useProgram(polygonProgram);
+        gl.uniform2fv(polygonLocations["resolution"], [2/width, 2/height]);
+        gl.uniform2fv(polygonLocations["camera_offset"], [offset_x, offset_y ]);
+
+        gl.useProgram(bezierProgram);
+        gl.uniform2fv(bezierLocations["resolution"], [2/width, 2/height]);
+        gl.uniform2fv(bezierLocations["camera_offset"], [offset_x, offset_y]);
 
 
 

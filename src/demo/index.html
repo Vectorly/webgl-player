@@ -123,6 +123,9 @@ loadJSON("data.json", function (json) {
         frame_update.forEach(function (update) {
 
 
+            if(update.type === "camera") return null;
+
+
             if(update.type === "hide") return null;
             if(update.type === "show") {
                 update.contour_lengths = foreground_shapes[update.i].contour_lengths;
