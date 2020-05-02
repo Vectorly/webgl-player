@@ -444,10 +444,10 @@ const initRenderer = (function(canvas, options={}) {
                 let contour_offset= shape.offset;
 
 
-                for(let j = 0; j < shape.contour_lengths.length; j++){
+                for(let j = 0; j < update.contour_lengths.length; j++){
 
                     contour_offsets[j] = contour_offset;
-                    contour_offset += shape.contour_lengths[j];
+                    contour_offset += update.contour_lengths[j];
                 }
 
 
