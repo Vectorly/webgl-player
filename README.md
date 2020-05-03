@@ -167,10 +167,10 @@ Therefore, inverting a pixel whose 8-bit value is 0 by stencil mask will set the
 
 The key here is to realize that you can invert non-zero values as well. Here, we will spell out exactly what happens when you invert a pixel in Region b in the example above, first by Polygon 2, then By curve 1, and then by Curve 2
 
-Starting pixel id:  00000000
-Invert by polygon 2 (mask=00000010):  00000010
-Invert by curve   1 (mask=00000001):  00000011
-Invert by curve   2 (mask=00000010):  00000001
+    Starting pixel id:  00000000
+    Invert by polygon 2 (mask=00000010):  00000010
+    Invert by curve   1 (mask=00000001):  00000011
+    Invert by curve   2 (mask=00000010):  00000001
 
 As you can see, the bit-value of region B is now equal to 1. If you only paint shape 1 in areas where the id is equal to 1, and only paint shape 2 in areas where the id is equal to 2, you will get the correct figure, regardless of the order in which the shapes are painted.
 
@@ -197,31 +197,29 @@ In code, this manifests itself in the following block of semi-pseudocode:
 The only issue with this algorithm is that GPUs are limited to 8-bit buffers, so you cannot have more than 255 shape ids. The solution here is assign each shape an id between 1 and 255, and use shear probability to minimize shapes with the same id being next to each other. This is what the buckets function does, where shapes are bunched together in buckets, where each shape in a single bucket has the same 8-bit id.
 
 
+**Contours**
 
-
-
-
-
-
-
-
+One last point to mention: Each shape can have holes inside. For the inversion technique to work, interior holes of each shape need to be drawn. This technically means that a shape can have more than one path or outline. This is what contours are: Each shape is defined not by one singular path, but by one or more contours. You don't need to make a distinction between internal or external contours.  If every contour is drawn, then the above theory will ensure that internal holes will be properly carved out of any shape, resulting in the correct output and leaving any shapes within the holes unaffected, regardless of paint order.
 
 ## Implementation
 
 To implement the theory above, there are some specific functions of WebGL to make sure to understand
 
-**Textures**
+**Instanced Arrays**
 
-In any given frame, there are about ~10^4 shapes and ~10^5 bezier curves. Rendering each shape (let alone each curve) individually therefore requires thousands of calls to the GPU, and lots of data back and forth.
+As discussed in the theory section, each bezier curve is just a constant matrix times the control points of the bezier curve. To efficiently draw this in WebGL, we use [Instanced Arrays](https://developer.mozilla.org/en-US/docs/Web/API/ANGLE_instanced_arrays), which can apply the same T value matrix to every bezier curve. To do this, you need to use the vertexAttribDivisor method to specify that the bezier curve parameters advance 1 per cycle of the t_array.
 
-Communication between the GPU and CPU is by far the biggest bottleneck when working with WebGL, so the idea is to minimize data transfer between the CPU and the GPU.
 
-The solution is to send all the bezier curves at once. To do this, you use a [texture](https://webglfundamentals.org/webgl/lessons/webgl-3d-textures.html), which is a fancy word for an embedded image
+**Primitive restarts**
 
-Here, you encode bezier coordinants as pixel rgba pixel values. In the GPU shader program, you read individual pixel values as if they were entries in a large table, and then you parse them to get the required pixel information.
+If you draw each polygon using 1 draw call, you will end up making thousands of draw calls per frame, which adds up to quite a bit of CPU and GPU usage. To solve this problem, we use primitive restarts, whereby if you use an index array as-in [drawElements](https://developer.mozilla.org/en-US/docs/Web/API/WebGLRenderingContext/drawElements), if you set an index value to the maximum allowed value (0xffff for 16-bit arrays), then the draw-sequence will interrupt the current polygon/triangle fan, and start drawing the next shape from the next index.
 
-Sending the bezier curves all at once, you could theoretically render the scene in 2 draw calls (instead of thousands), and any overhead in terms of parsing pixel values on the GPU is vastly outweighed by the reduction in CPU/GPU communication.
+This is only available in WebGL2, so it is only enabled when WebGL 2 is available.
 
+
+**WebGL2**
+
+Because of the primitive restarts feature, we try to use WebGL2 if it is availble, as it enables 60 fps with less than 5% CPU usage, compared to 15% CPU usage when primitive restart isn't available. Most of the code is the same, but you will see sections of code which depend on whether webGL1 or WebGL2 is being used.
 
 **Stencil**
 
@@ -236,14 +234,14 @@ You can therefore decide how many different stencil masks you want: If you do 25
 
 ## Results
 
-https://files.vectorly.io/demo/webgl-player/2/index.html
+https://files.vectorly.io/demo/webgl-player/5/index.html
 
 
-## Issues
+## Future work
 
-There are still some key issues to tackle.
+There are still some key improvements we can make
 
-* Some curves still show mysterious black spots or black zones, which may or may not be due to shape interference
-* Using Chromes performance monitor shows periodic spikes in GPU usage even on frames where nothing is happening. The framreate also mysteriously drops to 30fps and rises to 60fps, again even when nothing new is being rendered
-* There may be a more efficient way of rendering than using textures, by taking advantage of Instanced Arrays, but initial investigations indicate there's not an easy way of connecting bezier curves together into a single polygon
-* TODO: Add support for homography
+* Do an audit of the current code to make it more efficient and reduce CPU usage below 5%
+* Don't repaint the full scene on every frame, to make it more efficient for rendering at high resolutions
+* Use WebAssembly and/or Webworkers to improve the efficiency of the code
+* Build a new efficient file format
