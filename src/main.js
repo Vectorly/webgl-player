@@ -1,8 +1,11 @@
 const vvgl = (function(canvas, options={}) {
 
 
-    const gl = getContext(canvas);
+    const vvgl = this;
 
+    const {context, isWebGL2} = getContext(canvas);
+
+    const gl = context;
 
     const bezierProgram = initBezierProgram();
     const polygonProgram = initPolygonProgram();
@@ -28,30 +31,42 @@ const vvgl = (function(canvas, options={}) {
     let offset_h = 0;
 
 
-
-
-    const array_index = new Uint16Array(50000).fill(0xffff);
-
-    const bezier_index = new Uint16Array(50000).fill(0);
-
-    for(let i = 0; i < bezier_index.length; i++){
-        bezier_index[i] = i;
-    }
-
-
     const  num_bezier_vertices = initBuffers();
-
 
     let frame = 0;
 
     const data = {};
+    const extensions = {};
+
+    const array_index = new Uint16Array(50000);
+    const bezier_index = new Uint16Array(50000);
+
+
+    if(isWebGL2){
+
+        array_index.fill(0xffff);
+        for(let i = 0; i < bezier_index.length; i++){
+            bezier_index[i] = i;
+        }
+
+    } else{
+        extensions.angle = gl.getExtension('ANGLE_instanced_arrays');
+    }
+
+
 
     prepareCanvas();
 
 
-
     function getContext(canvas) {
-        return document.getElementById(canvas).getContext("webgl2", {stencil:true});
+
+        let context = document.getElementById(canvas).getContext("webgl2", {stencil:true});
+
+        let isWebGL2 = (typeof  context !== "undefined");
+
+        if(!isWebGL2) context = document.getElementById(canvas).getContext("webgl", {stencil:true});
+
+        return {context, isWebGL2};
     }
 
 
