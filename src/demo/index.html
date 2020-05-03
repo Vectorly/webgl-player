@@ -99,7 +99,7 @@ loadJSON("data.json", function (json) {
 
         }
 
-
+        shape.max_contours = contour_lengths.length;
 
         shape.data = [shape.xy[0], shape.xy[1],  shape.color[0], shape.color[1], shape.color[2]];
 
@@ -137,6 +137,9 @@ loadJSON("data.json", function (json) {
             let contour_lengths = [];
             let bezier_curves = [];
 
+
+
+
             for (let i =0; i < update.contours.length; i++){
 
                 let contour = update.contours[i];
@@ -171,6 +174,10 @@ loadJSON("data.json", function (json) {
 
             }
 
+
+            if(foreground_shapes[update.i].max_contours < contour_lengths.length){
+                foreground_shapes[update.i].max_contours = contour_lengths.length
+            }
 
             update.bezier_curves = bezier_curves;
             update.contour_lengths = contour_lengths;
