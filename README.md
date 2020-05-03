@@ -141,6 +141,69 @@ When you combine them using the inverse function, and a constant stencil mask, y
 
 The green polygon inverts the bezier curve of the blue polygon, setting it back to zero, and freeing the space to be painted by the green bezier curve
 
+The solution is to assign each shape an id. You want curves and polygons of the same shape to cancel each other out, without affecting the curves or polygons of other shapes.
+
+This can be done in OpenGL using the stencil function, and in actual code it looks something like this:
+
+    gl.stencilFunc(gl.ALWAYS, 0xff , 0xff);
+    gl.stencilOp( gl.KEEP,  gl.KEEP, gl.INVERT);
+    gl.stencilMask(i);
+
+The first line specifies that the stencil function will run on every pixel on the polygon (equivalent to if(true)). The second line says that if a pixel meets the condition in the stencil function (which is set to alway true), then do an INVERT operation. What the invert operation does is to take a bitwise inverse of the stencil_mask*the pixel's current 8-bit stencil id.
+
+For illustration, consider a pixel which starts out with a stencil id of 0 (the default). It's 8-bit id is
+
+    00000000
+
+When you set the stencil mask to 1, the stencil mask is another 8-bit number
+
+    00000001
+
+When you do an INVERT operation on th pixel's stencil id, it does a bitwise flip of each bit, but only on the bits where the stencil mask is 1. Here, since the stencil mask is 00000001, where only the first bit is 1, only the first bit of the pixel value will get flipped.
+
+    00000001
+
+Therefore, inverting a pixel whose 8-bit value is 0 by stencil mask will set the value of the bit equal to the stencil mask.
+
+The key here is to realize that you can invert non-zero values as well. Here, we will spell out exactly what happens when you invert a pixel in Region b in the example above, first by Polygon 2, then By curve 1, and then by Curve 2
+
+Starting pixel id:  00000000
+Invert by polygon 2 (mask=00000010):  00000010
+Invert by curve   1 (mask=00000001):  00000011
+Invert by curve   2 (mask=00000010):  00000001
+
+As you can see, the bit-value of region B is now equal to 1. If you only paint shape 1 in areas where the id is equal to 1, and only paint shape 2 in areas where the id is equal to 2, you will get the correct figure, regardless of the order in which the shapes are painted.
+
+You can formally prove that this technique works even for particularly complex, overlapping, nested and intertwined shapes, as long as each shape's id is uninque.
+
+In code, this manifests itself in the following block of semi-pseudocode:
+
+
+            gl.stencilFunc(gl.ALWAYS, id , 0xff);
+            gl.stencilMask(id);
+            gl.colorMask(false, false, false, false);
+
+            drawPolygons();
+            drawCurves();
+
+            gl.stencilFunc(gl.EQUAL, id , 0xff);
+            gl.stencilMask(id);
+            gl.colorMask(true, true, true, true);
+
+            drawPolygons();
+            drawCurves();
+
+
+The only issue with this algorithm is that GPUs are limited to 8-bit buffers, so you cannot have more than 255 shape ids. The solution here is assign each shape an id between 1 and 255, and use shear probability to minimize shapes with the same id being next to each other. This is what the buckets function does, where shapes are bunched together in buckets, where each shape in a single bucket has the same 8-bit id.
+
+
+
+
+
+
+
+
+
 
 
 ## Implementation
