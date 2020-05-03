@@ -123,11 +123,15 @@ With the rendered curves and the rendered polygon, you have all the triangles ne
 Fortunately, the stencil buffer functionality of OpenGL  / WebGL enable exactly these kinds of 'bitwise' operations, enabling construction of any closed shape defined as a series of bezier curves, no matter how abritrarily complex.
 
 
+**Cancelling out shape interference**
+
+If you only needed to render one shape, the above techniques would be sufficient to build any possible closed bezier path in WebGL. When you involve multiple shapes though, especially shapes which are adjacent, a naïve implementaiton of the above would result in shape interference, with neighboring shapes painting over each other.
+
+To see why, consider the following example:
 
 
-**Drawing everything on the GPU**
+![](docs/interference_1.jpg)
 
-If you understand both points of theory above, the algorithm from here is exceedingly simple. Every shape is a series of bezier curves. For each shape, you supply a list of the bezier curve control points, and the GPU will calculate n points along each bezier curve. These points are now the vertices of a very complex polygon, and you do the stencil buffer method mentioned above to paint only the areas inside the shape.
 
 
 ## Implementation
