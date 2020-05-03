@@ -333,7 +333,7 @@ const vvgl = (function(canvas, options={}) {
         });
 
 
-        const element_array_index_buffer = gl.createBuffer();
+
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, element_array_index_buffer);
         gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, array_index, gl.STATIC_DRAW);
 
@@ -347,7 +347,7 @@ const vvgl = (function(canvas, options={}) {
 
 
 
-        const num_buckets = 40;
+        const num_buckets = 100;
 
         data.num_buckets = num_buckets;
 
@@ -480,7 +480,7 @@ const vvgl = (function(canvas, options={}) {
 
         frame ++;
 
-        return null;
+       // return null;
 
         const updates = data.updates[frame];
 
@@ -518,20 +518,23 @@ const vvgl = (function(canvas, options={}) {
             if(update.type === "morph") {
 
 
-                let contour_offsets = new Array(update.contour_lengths.length);
 
                 let contour_offset= shape.offset;
+
+                let index_offset = 0;
+
+
+                array_index.fill(0xffff, shape.index_offset,   shape.index_offset + shape.max_curves + shape.max_contours );
 
 
                 for(let j = 0; j < update.contour_lengths.length; j++){
 
-                    contour_offsets[j] = contour_offset;
-                    contour_offset += update.contour_lengths[j];
+                    array_index.set(bezier_index.slice(contour_offset,  contour_offset + update.contour_lengths[j]), index_offset + shape.index_offset);
+                    index_offset +=  update.contour_lengths[j] + 1;
+                    contour_offset +=  update.contour_lengths[j];
+
                 }
 
-
-                data.shapes[shape_id].contour_lengths = update.contour_lengths;
-                data.shapes[shape_id].contour_offsets = contour_offsets;
 
             }
 
@@ -539,8 +542,12 @@ const vvgl = (function(canvas, options={}) {
 
 
 
-        gl.bufferSubData(gl.ARRAY_BUFFER, 0, data.bezier_buffer, 0, data.foreground_length);
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, element_array_index_buffer);
+        gl.bufferSubData(gl.ELEMENT_ARRAY_BUFFER, 0,  array_index ,  0, array_index.length);
 
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, bezier_buffer);
+        gl.bufferSubData(gl.ARRAY_BUFFER, 0, data.bezier_buffer, 0, data.foreground_length);
 
     }
 
