@@ -365,7 +365,7 @@ const vvgl = (function(canvas, options={}) {
         });
 
 
-        const num_buckets = 20;
+        const num_buckets = 70;
 
         data.num_buckets = num_buckets;
 
