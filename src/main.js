@@ -247,8 +247,6 @@ const vvgl = (function(canvas, options={}) {
 
         const shapes = [...foreground_shapes, ...background_shapes];
 
-
-        // Just to remove that one error
         shapes[shapes.length-1].contour_lengths[0] = shapes[shapes.length-1].contour_lengths[0]-1;
 
         const offsets = new Array(shapes.length);
@@ -298,16 +296,12 @@ const vvgl = (function(canvas, options={}) {
 
             for(let j = 0; j < shapes[i].contour_lengths.length; j++){
 
-
-
                 array_index.set(bezier_index.slice(contour_offset,  contour_offset + shapes[i].contour_lengths[j]), index_offset + shape_index_offset);
 
                 index_offset += shapes[i].contour_lengths[j] + 1;
 
                 contour_offset += shapes[i].contour_lengths[j];
             }
-
-
 
             shape_index_offset +=  shapes[i].max_curves + shapes[i].max_contours;
 
@@ -338,7 +332,6 @@ const vvgl = (function(canvas, options={}) {
         });
 
 
-
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, element_array_index_buffer);
         gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, array_index, gl.STATIC_DRAW);
 
@@ -350,7 +343,7 @@ const vvgl = (function(canvas, options={}) {
         });
 
 
-        const num_buckets = 40;
+        const num_buckets = 70;
 
         data.num_buckets = num_buckets;
 
@@ -392,17 +385,9 @@ const vvgl = (function(canvas, options={}) {
 
         }
 
-
         data.bucket_lengths = bucket_lengths;
-
         data.bucket_index_lengths = bucket_index_lengths;
         data.buckets = buckets;
-
-
-
-
-
-
 
 
     }
@@ -447,11 +432,6 @@ const vvgl = (function(canvas, options={}) {
         gl.uniform2fv(bezierLocations["resolution"], [2/width, 2/height]);
         gl.uniform2fv(bezierLocations["camera_offset"], [offset_w, offset_h]);
 
-
-
-
-
-
     }
 
 
@@ -462,7 +442,6 @@ const vvgl = (function(canvas, options={}) {
 
         let offset_x = offset_w - update.x;
         let offset_y = offset_h - update.y-260;
-
 
 
         gl.useProgram(polygonProgram);
