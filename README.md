@@ -141,7 +141,9 @@ When you combine them using the inverse function, and a constant stencil mask, y
 
 The green polygon inverts the bezier curve of the blue polygon, setting it back to zero, and freeing the space to be painted by the green bezier curve
 
-The solution is to assign each shape an id. You want curves and polygons of the same shape to cancel each other out, without affecting the curves or polygons of other shapes.
+The solution is to assign each shape an id. You want curves and polygons of the same shape to cancel each other out, without affecting the curves or polygons of other shapes, as in the diagram below.
+
+![](docs/interference_4.jpg)
 
 This can be done in OpenGL using the stencil function, and in actual code it looks something like this:
 
