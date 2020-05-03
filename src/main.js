@@ -285,10 +285,7 @@ const vvgl = (function(canvas, options={}) {
 
         let shape_index_offset = 0;
 
-
-
         for(let i =0; i <shapes.length; i++){
-
 
             let contour_offset= shapes[i].offset;
 
@@ -296,9 +293,6 @@ const vvgl = (function(canvas, options={}) {
 
             shapes[i].index_offset = shape_index_offset;
 
-
-            console.log(`Shape ${i}  contours`);
-            console.log(shapes[i].contours);
 
             for(let j = 0; j < shapes[i].contour_lengths.length; j++){
 
@@ -316,11 +310,6 @@ const vvgl = (function(canvas, options={}) {
             shape_index_offset +=  shapes[i].max_curves + shapes[i].max_contours;
 
         }
-
-        console.log(offsets);
-        console.log(array_index);
-
-
 
         data.offsets = offsets;
 
@@ -358,7 +347,7 @@ const vvgl = (function(canvas, options={}) {
 
 
 
-        const num_buckets = 70;
+        const num_buckets = 40;
 
         data.num_buckets = num_buckets;
 
@@ -491,7 +480,6 @@ const vvgl = (function(canvas, options={}) {
 
         frame ++;
 
-
         return null;
 
         const updates = data.updates[frame];
@@ -611,10 +599,6 @@ const vvgl = (function(canvas, options={}) {
 
 
     function renderShapes(offset, i) {
-
-        console.log(`Bucket index lengths`);
-        console.log(data.bucket_index_lengths[i]);
-
 
         if(data.bucket_index_lengths[i] > 0){
             gl.drawElements(gl.TRIANGLE_FAN, data.bucket_index_lengths[i],  gl.UNSIGNED_SHORT, offset*2);
@@ -743,7 +727,7 @@ const vvgl = (function(canvas, options={}) {
 
         render();
 
-      //  window.requestAnimationFrame(step);
+        window.requestAnimationFrame(step);
 
 
     }
