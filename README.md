@@ -112,6 +112,17 @@ Let's say you define a shape as a string of bezier curves. Here, we outline how 
 
 Consider the shape shown above, which is constructed of 2 lines and 2 bezier curves. Here, we would form a polygon from the 4 bezier curve end points, which we call the 'coarse polygon'.
 
+Using the technique for drawing arbitrary polygons in the previous section, you can easily render the course polygon.
+
+Using the linear algebra technique mentioned above, you can also render each bezier curve independantly.
+
+With the rendered curves and the rendered polygon, you have all the triangles needed to build the shape. Constructing the shape isn't just a matter of adding the bezier curves to the coarse polygon though. Some curves 'cut into' the polygon (i.e. they are concave).
+
+![](docs/stencil2.jpg)
+
+To properly build the shape, you effectively do a bitwise 'or' operation on the rendered bezier curves and coarse polygon, only painting areas which are either in the polygon or in a curve, but not areas that are both in the polygon and in a curve.
+
+By doing this bitwise operation, you can effectively construct any arbitrary closed shape defined as a series of bezier curves, no matter how abritrarily complex.
 
 
 
