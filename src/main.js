@@ -350,12 +350,9 @@ const vvgl = (function(canvas, options={}) {
         });
 
 
-
-
-        const num_buckets = 100;
+        const num_buckets = 40;
 
         data.num_buckets = num_buckets;
-
 
         const shapes_per_bucket = Math.ceil(shapes.length / num_buckets);
 
@@ -485,8 +482,6 @@ const vvgl = (function(canvas, options={}) {
 
         frame ++;
 
-       // return null;
-
         const updates = data.updates[frame];
 
         if(!updates) return null;
@@ -519,15 +514,11 @@ const vvgl = (function(canvas, options={}) {
 
             }
 
-
             if(update.type === "morph") {
 
 
-
                 let contour_offset= shape.offset;
-
                 let index_offset = 0;
-
 
                 array_index.fill(0xffff, shape.index_offset,   shape.index_offset + shape.max_curves + shape.max_contours );
 
@@ -544,7 +535,6 @@ const vvgl = (function(canvas, options={}) {
             }
 
         });
-
 
 
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, element_array_index_buffer);
@@ -574,9 +564,6 @@ const vvgl = (function(canvas, options={}) {
         gl.vertexAttribDivisor(polygonLocations["offset"], 0);
 
 
-
-
-
     }
 
     function bezierPointers() {
@@ -601,10 +588,6 @@ const vvgl = (function(canvas, options={}) {
 
         gl.vertexAttribPointer(bezierLocations["color"], 4, gl.FLOAT, false, 52, 40);
         gl.vertexAttribDivisor(bezierLocations["color"], 1);
-
-
-
-
 
 
     }
