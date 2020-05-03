@@ -36,10 +36,12 @@ It's also helpful to have a background in basic linear algebra, and specifically
 
 ## Theory
 
-To understand how the WebGL player works at a theory level, you only need to know two things:
+To understand how the WebGL player works at a theory level, you need to know:
 
 * How to render a bezier curve using linear algebra
-* How to render complex polygons as a series of triangles
+* How to draw arbitrary polygons as a series of triangles
+* How to construct complex shapes as a superposition of polygons and bezier curves
+* How to cancel out shape interference through bitwise inversions
 
 **Bezier Curves as Linear Algebra**
 
@@ -80,7 +82,7 @@ Every bezier curve, therefore, can be calculated by multiplying the 4 control po
 In this way, you can feed hundreds of thousands of bezier curves to the GPU in parallel, and it will output millions of vertex points efficiently (in less than 1 ms), becuase it's just about multiplying 10^5 vectors by a constant matrix
 
 
-**Complex polygons as a series of triangles**
+**Drawing abritrary polygons using Triangles**
 
 WebGL and OpenGL only really understand lines and triangles. Everything that is rendered in WebGL therefore needs to be broken down into triangles.
 
@@ -96,11 +98,22 @@ This neat quirk lets you take advantage of 2 OpenGL/WebGL features to draw any c
 * Triangle Fans
 * Stencil Buffers
 
-For the stencil buffer, you can use the Stencil mask function to mark any pixel with an 8-bit id without drawing it. You can also use the Stencil INVERT function to do a bitwise flip of any pixel drawn by a triangle, and the stencil test to draw only draw triangles on pixels where the stencil id is equal to a certain value.
+For the stencil buffer, you can use the stencil mask function to mark any pixel with an 8-bit id without actually drawing the pixel. You can also use the stencil INVERT function to do a bitwise flip of the pixel's 8-bit id, and the stencil test to draw only draw triangles on pixels where the 8-bit id is equal to a certain value.
 
-What you can do therefore, is to draw a triangle fan for every polygon, using the stencil mask to set the pixels to a given id, and the stencil invert function to flip the pixel ids every time a triangle is drawn. Because of the neat quirk mentioned above, every pixel inside the polygon will have the same stencil id, and everything outside the polygon will remain unaffected, because they will have undergone an even number of inverts.
+What you can do therefore, is to draw a triangle fan for every polygon, using the stencil mask to set the pixels to a given id, and the stencil invert function to flip the pixel ids every time a triangle is drawn. Because of the neat quirk mentioned above, every pixel inside the polygon will have a common 8-bit id, and everything outside the polygon will remain unaffected, because they will have undergone an even number of inverts.
 
 This idea comes from the [GL Programming textbook](http://www.glprogramming.com/red/chapter14.html#name13), which you can look at for reference.
+
+**Shapes as superpositions of polygons and bezier curves**
+
+Let's say you define a shape as a string of bezier curves. Here, we outline how to construct that shape as a superposition of independent bezier curves, and the polygon formed by the bezier-curve end points.
+
+![](docs/stencil.jpg)
+
+Consider the shape shown above, which is constructed of 2 lines and 2 bezier curves. Here, we would form a polygon from the 4 bezier curve end points, which we call the 'coarse polygon'.
+
+
+
 
 
 **Drawing everything on the GPU**
