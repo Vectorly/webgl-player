@@ -282,6 +282,7 @@ const vvgl = (function(canvas, options={}) {
         }
 
 
+        let background_index_offset = 0;
 
         let shape_index_offset = 0;
 
@@ -293,6 +294,7 @@ const vvgl = (function(canvas, options={}) {
 
             shapes[i].index_offset = shape_index_offset;
 
+            if(!shapes[i].foreground && !background_offset) background_index_offset = shape_index_offset;
 
             for(let j = 0; j < shapes[i].contour_lengths.length; j++){
 
@@ -310,6 +312,9 @@ const vvgl = (function(canvas, options={}) {
             shape_index_offset +=  shapes[i].max_curves + shapes[i].max_contours;
 
         }
+
+
+        data.foreground_index_length = background_index_offset;
 
         data.offsets = offsets;
 
@@ -543,7 +548,7 @@ const vvgl = (function(canvas, options={}) {
 
 
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, element_array_index_buffer);
-        gl.bufferSubData(gl.ELEMENT_ARRAY_BUFFER, 0,  array_index ,  0, array_index.length);
+        gl.bufferSubData(gl.ELEMENT_ARRAY_BUFFER, 0,  array_index ,  0, data.foreground_index_length);
 
 
         gl.bindBuffer(gl.ARRAY_BUFFER, bezier_buffer);
