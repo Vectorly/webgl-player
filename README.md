@@ -129,8 +129,17 @@ If you only needed to render one shape, the above techniques would be sufficient
 
 To see why, consider the following example:
 
-
 ![](docs/interference_1.jpg)
+
+If you follow the theory mentioned in the previous sections, you can construct a coarse polygon and bezier curve for each shape
+
+![](docs/interference_2.jpg)
+
+When you combine them using the inverse function, and a constant stencil mask, you will run into interference. Consider what happens when you draw both shapes in sequence, using the invert method
+
+![](docs/interference_3.jpg)
+
+The green polygon inverts the bezier curve of the blue polygon, setting it back to zero, and freeing the space to be painted by the green bezier curve
 
 
 
