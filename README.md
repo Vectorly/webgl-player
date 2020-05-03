@@ -145,6 +145,8 @@ The solution is to assign each shape an id. You want curves and polygons of the 
 
 ![](docs/interference_4.jpg)
 
+If you could somehow have curve 2 cancel out polygon 2, regardless of the order in which the polygons and curves are drawn, you would be left with region B belonging to shape 1.
+
 This can be done in OpenGL using the stencil function, and in actual code it looks something like this:
 
     gl.stencilFunc(gl.ALWAYS, 0xff , 0xff);
