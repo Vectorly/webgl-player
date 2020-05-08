@@ -850,7 +850,11 @@ const vvgl = (function(canvas, options={}) {
 
 
 
-                this.curves.push(curve.flat());
+                curve = curve.flat();
+
+                curve = [curve[0], curve[2], curve[4], curve [6], curve[1], curve[3], curve[5], curve[7]];
+
+                this.curves.push(curve);
             }
 
 
@@ -947,24 +951,34 @@ const vvgl = (function(canvas, options={}) {
             const data = new Float32Array(this.size*13);
             const shape = this;
 
-            this.contours.forEach(function (contour) {
+            for (let i = 0; i < this.contours.length; i++){
 
-                contour.segments.forEach(function (segment) {
+                let contour = this.contours[i];
 
-                    for (let i = 0; i < segment.curves.length;i++){
+                for(let j = 0; j < contour.segments.length; j++){
 
-                        let offset = (contour.offset + segment.offset + i)*13;
+                    let segment = contour.segments[j];
 
-                        data.set(segment.curves[i], offset);
+
+                    for (let k = 0; k < segment.curves.length;k++){
+
+                        let offset = (contour.offset + segment.offset + k)*13;
+
+                        console.log(segment.curves[k]);
+
+                        data.set(segment.curves[k], offset);
 
                         data.set(shape.xy, offset+8);
                         data.set(shape.color, offset+10);
 
                     }
 
-                });
 
-            });
+                }
+
+            }
+
+
 
             return data;
         }
