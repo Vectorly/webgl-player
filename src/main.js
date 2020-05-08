@@ -7,6 +7,10 @@ const vvgl = (function(canvas, options={}) {
 
     const gl = context;
 
+    let shape_list;
+
+
+
     const bezierProgram = initBezierProgram();
     const polygonProgram = initPolygonProgram();
 
@@ -55,12 +59,14 @@ const vvgl = (function(canvas, options={}) {
 
 
 
-    prepareCanvas();
+
 
 
     function getContext(canvas) {
 
-        let context = document.getElementById(canvas).getContext("webgl2", {stencil:true});
+       // let context = document.getElementById(canvas).getContext("webgl2", {stencil:true});
+
+        let context;
 
         let isWebGL2 = (typeof  context !== "undefined");
 
@@ -237,6 +243,21 @@ const vvgl = (function(canvas, options={}) {
         gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
 
 
+        polygonPointers();
+
+        polygonAttributes.forEach(function (attribute) {
+            gl.enableVertexAttribArray(polygonLocations[attribute]);
+        });
+
+
+
+        bezierPointers();
+
+        bezierAttributes.forEach(function (attribute) {
+            gl.enableVertexAttribArray(bezierLocations[attribute]);
+        });
+
+
 
         gl.useProgram(polygonProgram);
         gl.uniform2fv(polygonLocations["resolution"], [2/width, 2/height]);
@@ -246,6 +267,29 @@ const vvgl = (function(canvas, options={}) {
 
     }
 
+
+    function setBufferData() {
+
+
+
+        const bezier_buffer_data = new Float32Array(shape_list.size*13);
+
+        bezier_buffer_data.set(shape_list.getBufferData(), 0);
+
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, bezier_buffer);
+        gl.bufferData(gl.ARRAY_BUFFER, bezier_buffer_data, gl.DYNAMIC_DRAW);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, t_buffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(t_array), gl.STATIC_DRAW);
+
+
+
+        data.num_buckets = 1;
+        data.buckets = [shape_list.shapes];
+        data.bucket_lengths = [shape_list.shapes[0].size];
+
+    }
 
     function setBezierData(json) {
 
@@ -419,18 +463,6 @@ const vvgl = (function(canvas, options={}) {
 
 
 
-
-    function load(json) {
-
-        data.num_bezier_curves = json.num_bezier_curves;
-        data.updates = json.updates;
-
-        data.shapes = json.foreground_shapes;
-
-        setBezierData(json);
-
-        if(json.scene) setCamera(json.scene);
-    }
 
 
     function setCamera(scene) {
@@ -631,8 +663,8 @@ const vvgl = (function(canvas, options={}) {
 
         shapes.forEach(function (shape) {
 
-            for (let i = 0; i < shape.contour_lengths.length; i++){
-                gl.drawArrays(gl.TRIANGLE_FAN, shape.contour_offsets[i],  shape.contour_lengths[i] );
+            for (let i = 0; i < shape.contours.length; i++){
+                gl.drawArrays(gl.TRIANGLE_FAN, shape.contours[i].offset,  shape.contours[i].size);
             }
 
         });
@@ -768,12 +800,227 @@ const vvgl = (function(canvas, options={}) {
 
     function play() {
 
-
         render();
-        window.requestAnimationFrame(step);
+       // window.requestAnimationFrame(step);
+
+    }
+
+
+    class KeyPoint {
+
+        constructor(point){
+
+            this.x = point[0];
+            this.y = point[1];
+        }
+
+        update(dx, dy){
+
+            this.x = this.x + dx;
+            this.y = this.y + dy;
+
+        }
 
 
     }
+
+    class Segment{
+
+        constructor(curves, key_first, key_last){
+
+            this.curves = [];
+            this.key_first = key_first;
+            this.key_last = key_last;
+
+            this.size = curves.length;
+
+
+            for( let i = 0; i < curves.length; i++){
+
+                let curve = curves[i];
+
+                if(curve.length ===2){
+                    curve = [curve[0], curve[0], curve[1], curve[1]];
+                }
+
+
+
+                this.curves.push(curve.flat());
+            }
+
+
+        }
+
+        update_curve(new_curve){
+
+
+        }
+
+
+
+    }
+
+
+
+
+    class Contour {
+
+        constructor(data){
+
+
+            let key_points = data[0];
+            let segments = data[1];
+
+            let l = segments.length;
+
+            let size = 0;
+
+            this.segments = [];
+            this.key_points = [];
+
+
+
+            for (let i =0; i < l; i++){
+                this.key_points.push(new KeyPoint(key_points[i]));
+            }
+
+
+            for (let i =0; i < l; i++){
+
+                let segment = new Segment(segments[i], this.key_points[i], this.key_points[(i+1)%l]);
+                segment.offset = size;
+                this.segments.push(segment);
+                size +=segment.size;
+            }
+
+            this.size = size;
+
+
+        }
+
+
+
+
+    }
+
+
+
+
+    class Shape {
+
+        constructor(data){
+
+
+            this.xy = data.xy;
+            this.size = data.max_curves;
+            this.id = data.rid;
+            this.color = data.color;
+
+            this.contours = [];
+
+            let offset= 0;
+
+            for (let i=0; i < data.contours.length; i++){
+
+                let contour = new Contour(data.contours[i]);
+
+                contour.offset = offset;
+                this.contours.push(contour);
+
+                offset+=contour.size;
+
+
+            }
+
+
+
+        }
+
+        getBufferData(){
+
+
+            const data = new Float32Array(this.size*13);
+            const shape = this;
+
+            this.contours.forEach(function (contour) {
+
+                contour.segments.forEach(function (segment) {
+
+                    for (let i = 0; i < segment.curves.length;i++){
+
+                        let offset = (contour.offset + segment.offset + i)*13;
+
+                        data.set(segment.curves[i], offset);
+
+                        data.set(shape.xy, offset+8);
+                        data.set(shape.color, offset+10);
+
+                    }
+
+                });
+
+            });
+
+            return data;
+        }
+
+
+
+    }
+
+    class ShapeList {
+
+        constructor(shapes){
+
+
+            this.shapes = [];
+
+            let size = 0;
+
+            for (let i=0; i < shapes.length; i++){
+
+                let shape =  new Shape(shapes[i]);
+                shape.offset  = size;
+
+                size += shape.size;
+
+                this.shapes.push(shape);
+
+            }
+
+
+            this.size = size;
+
+        }
+
+        getBufferData(){
+
+            let data = [];
+
+            this.shapes.forEach(function (shape) {
+                data.push.apply(data, shape.getBufferData());
+            });
+
+
+            return data;
+        }
+
+    }
+
+
+
+
+
+
+    function load(json) {
+
+        shape_list = new ShapeList(json.shapes);
+        setBufferData();
+        prepareCanvas();
+
+
+    }
+
 
 
 
