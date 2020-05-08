@@ -478,11 +478,11 @@ const vvgl = (function(canvas, options={}) {
 
 
         gl.useProgram(polygonProgram);
-        gl.uniform2fv(polygonLocations["resolution"], [2/width, 2/height]);
+        gl.uniform2fv(polygonLocations["resolution"], [2/width, -2/height]);
         gl.uniform2fv(polygonLocations["camera_offset"], [offset_w, offset_h]);
 
         gl.useProgram(bezierProgram);
-        gl.uniform2fv(bezierLocations["resolution"], [2/width, 2/height]);
+        gl.uniform2fv(bezierLocations["resolution"], [2/width, -2/height]);
         gl.uniform2fv(bezierLocations["camera_offset"], [offset_w, offset_h]);
 
     }
@@ -844,15 +844,9 @@ const vvgl = (function(canvas, options={}) {
 
                 let curve = curves[i];
 
-                if(curve.length ===2){
-                    curve = [curve[0], curve[0], curve[1], curve[1]];
+                if(curve.length ===4){
+                    curve = [curve[0], curve[0], curve[1], curve[1], curve[2], curve[2], curve[3], curve[3]];
                 }
-
-
-
-                curve = curve.flat();
-
-                curve = [curve[0], curve[2], curve[4], curve [6], curve[1], curve[3], curve[5], curve[7]];
 
                 this.curves.push(curve);
             }
