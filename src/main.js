@@ -664,7 +664,11 @@ const vvgl = (function(canvas, options={}) {
         shapes.forEach(function (shape) {
 
             for (let i = 0; i < shape.contours.length; i++){
-                gl.drawArrays(gl.TRIANGLE_FAN, shape.contours[i].offset,  shape.contours[i].size);
+
+                console.log(`Rendering shape`);
+                console.log(shape);
+
+                gl.drawArrays(gl.TRIANGLE_FAN, shape.contours[i].offset,  shape.contours[i].size-1);
             }
 
         });
@@ -717,6 +721,7 @@ const vvgl = (function(canvas, options={}) {
             if(isWebGL2){
                 offset =  renderShapes2(offset, i)
             }  else{
+
                 renderShapes(data.buckets[i]);
             }
 
