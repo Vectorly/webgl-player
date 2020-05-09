@@ -287,7 +287,14 @@ const vvgl = (function(canvas, options={}) {
 
         data.num_buckets = 1;
         data.buckets = [shape_list.shapes];
-        data.bucket_lengths = [shape_list.shapes[0].size];
+
+        let size = 0;
+
+        shape_list.shapes.forEach(function (shape) {
+           size += shape.size;
+        });
+
+        data.bucket_lengths = [size];
 
     }
 
@@ -665,10 +672,7 @@ const vvgl = (function(canvas, options={}) {
 
             for (let i = 0; i < shape.contours.length; i++){
 
-                console.log(`Rendering shape`);
-                console.log(shape);
-
-                gl.drawArrays(gl.TRIANGLE_FAN, shape.contours[i].offset,  shape.contours[i].size-1);
+                gl.drawArrays(gl.TRIANGLE_FAN, shape.offset + shape.contours[i].offset,  shape.contours[i].size);
             }
 
         });
@@ -945,9 +949,12 @@ const vvgl = (function(canvas, options={}) {
             const data = new Float32Array(this.size*13);
             const shape = this;
 
+
             for (let i = 0; i < this.contours.length; i++){
 
                 let contour = this.contours[i];
+
+
 
                 for(let j = 0; j < contour.segments.length; j++){
 
@@ -958,7 +965,8 @@ const vvgl = (function(canvas, options={}) {
 
                         let offset = (contour.offset + segment.offset + k)*13;
 
-                        console.log(segment.curves[k]);
+                        console.log(`Contour offset: ${contour.offset}, segment offset: ${segment.offset}, k: ${k}. Total offset: ${offset}`);
+                        //console.log(offset);
 
                         data.set(segment.curves[k], offset);
 

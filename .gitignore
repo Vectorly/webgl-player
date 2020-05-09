@@ -9,3 +9,5 @@ out
 gen
 demo/*
 node_modules
+
+vvid/*.json
