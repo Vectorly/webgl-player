@@ -285,17 +285,54 @@ const vvgl = (function(canvas, options={}) {
 
 
 
-        data.num_buckets = 1;
-        data.buckets = [shape_list.shapes];
+        const num_buckets = 160;
 
-        let size = 0;
+        const shapes = shape_list.shapes;
 
-        shape_list.shapes.forEach(function (shape) {
-           size += shape.size;
-        });
+        const shapes_per_bucket = Math.ceil(shapes.length / num_buckets);
 
-        data.bucket_lengths = [size];
+        const bucket_lengths = new Array(num_buckets);
+        const bucket_index_lengths = new Array(num_buckets);
 
+        const buckets = new Array(num_buckets);
+
+        for(let i = 0; i < num_buckets; i++){
+
+            let shapes_in_this_bucket;
+
+            if (i === num_buckets- 1){
+                shapes_in_this_bucket = shapes.slice(i*shapes_per_bucket);
+
+            } else{
+
+                shapes_in_this_bucket = shapes.slice(i*shapes_per_bucket, (i+1)*shapes_per_bucket);
+            }
+
+
+            let curves_this_shape = 0;
+            let bucket_indices = 0;
+
+            shapes_in_this_bucket.forEach(function (shape) {
+
+                if(shape.size > 0){
+                    curves_this_shape += shape.size;
+                }
+
+            });
+
+            bucket_index_lengths[i] = bucket_indices;
+
+            bucket_lengths[i] = curves_this_shape;
+
+            buckets[i] = shapes_in_this_bucket;
+
+        }
+
+        data.num_buckets = num_buckets;
+
+        data.bucket_lengths = bucket_lengths;
+        data.bucket_index_lengths = bucket_index_lengths;
+        data.buckets = buckets;
     }
 
     function setBezierData(json) {
@@ -443,8 +480,10 @@ const vvgl = (function(canvas, options={}) {
             let curves_this_shape = 0;
             let bucket_indices = 0;
 
+
             shapes_in_this_bucket.forEach(function (shape) {
 
+                console.log(shape);
                 curves_this_shape += shape.max_curves;
                 bucket_indices += shape.max_curves + shape.max_contours;
 
@@ -965,7 +1004,7 @@ const vvgl = (function(canvas, options={}) {
 
                         let offset = (contour.offset + segment.offset + k)*13;
 
-                        console.log(`Contour offset: ${contour.offset}, segment offset: ${segment.offset}, k: ${k}. Total offset: ${offset}`);
+                    //    console.log(`Contour offset: ${contour.offset}, segment offset: ${segment.offset}, k: ${k}. Total offset: ${offset}`);
                         //console.log(offset);
 
                         data.set(segment.curves[k], offset);
