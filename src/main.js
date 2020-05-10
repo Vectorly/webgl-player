@@ -273,7 +273,7 @@ const vvgl = (function(canvas, options={}) {
 
 
 
-        const bezier_buffer_data = new Float32Array(shape_list.size*13);
+        const bezier_buffer_data = new Float32Array((shape_list.size+1)*13);
 
         bezier_buffer_data.set(shape_list.getBufferData(), 0);
 
@@ -486,13 +486,16 @@ const vvgl = (function(canvas, options={}) {
 
     function renderShapes(bucket) {
 
-
-
         bucket.shapes.forEach(function (shape) {
 
             for (let i = 0; i < shape.contours.length; i++){
 
-                gl.drawArrays(gl.TRIANGLE_FAN, shape.offset + shape.contours[i].offset,  shape.contours[i].size);
+                if(shape.size > 0 && shape.contours[i].size > 0){
+
+                    gl.drawArrays(gl.TRIANGLE_FAN, shape.offset + shape.contours[i].offset,  shape.contours[i].size);
+                }
+
+
             }
 
         });
@@ -513,9 +516,8 @@ const vvgl = (function(canvas, options={}) {
             gl.vertexAttribPointer(bezierLocations["offset"], 4, gl.FLOAT, false, 52, 32 + 52*offset);
             gl.vertexAttribPointer(bezierLocations["color"], 4, gl.FLOAT, false, 52, 40 + 52*offset);
 
-
-            if(isWebGL2) gl.drawArraysInstanced(gl.TRIANGLE_FAN,  0, num_bezier_vertices, l-1);
-            else extensions.angle.drawArraysInstancedANGLE(gl.TRIANGLE_FAN,  0, num_bezier_vertices, l-1);
+            if(isWebGL2) gl.drawArraysInstanced(gl.TRIANGLE_FAN,  0, num_bezier_vertices, l);
+            else extensions.angle.drawArraysInstancedANGLE(gl.TRIANGLE_FAN,  0, num_bezier_vertices, l);
 
         }
 
@@ -897,7 +899,7 @@ const vvgl = (function(canvas, options={}) {
 
         constructor(shapes){
 
-            this.num_buckets = 160;
+            this.num_buckets = 50;
 
             const shapes_per_bucket = Math.ceil(shapes.length / this.num_buckets);
 
