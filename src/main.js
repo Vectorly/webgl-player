@@ -666,23 +666,30 @@ const vvgl = (function(canvas, options={}) {
             this.size = curves.length;
 
             let start = key_first;
+            let end = key_last;
+
 
 
             for( let i = 0; i < curves.length; i++){
 
                 let curve = curves[i];
 
+                if(i === curves.length - 1){
 
-                if(curve.length ===2){
+                    if(curve.length ===0)curve = [start.x, start.x, end.x, end.x, start.y, start.y, end.y, end.y];
+                    else curve = [start.x,  curve[0], curve[1], end.x, start.y,curve[2], curve[3], end.y];
 
-                    curve = [start.x, start.x, curve[0], curve[0], start.y, start.y,curve[1], curve[1] ];
 
                 } else {
 
-                    curve = [start.x,  curve[0], curve[1], curve[2], start.y,curve[3], curve[4], curve[5]];
 
+                    if(curve.length ===2)curve = [start.x, start.x, curve[0], curve[0], start.y, start.y,curve[1], curve[1] ];
+                    else curve = [start.x,  curve[0], curve[1], curve[2], start.y,curve[3], curve[4], curve[5]];
 
                 }
+
+
+
 
                 start = {x: curve[3], y: curve[7]};
 
