@@ -746,15 +746,25 @@ const vvgl = (function(canvas, options={}) {
 
         update(curves){
 
-            console.log("This length:");
+            console.log("before:");
             console.log(this.size);
+
+
+            console.log(JSON.parse(JSON.stringify(this.curves)));
 
 
 
             this.set(curves);
 
-            console.log("This length:");
-            console.log(this.size);
+            this.size = 2;
+
+            console.log("after:");
+
+
+            console.log(JSON.parse(JSON.stringify(this.curves)));
+
+            console.log(this);
+
 
         }
 
@@ -902,54 +912,53 @@ const vvgl = (function(canvas, options={}) {
         update(update){
 
 
-            /*
-                        let additions = update[0];
+
+                                    let additions = update[0];
 
 
-                        let key_point_additions = additions[0];
-                        let segment_additions = additions[1];
-                        let contour_additions = additions[2];
+                                    let key_point_additions = additions[0];
+                                    let segment_additions = additions[1];
+                                    let contour_additions = additions[2];
 
 
-                        for(const add of key_point_additions){
-                            this.points.push(new KeyPoint(add))
-                        }
+                                    for(const add of key_point_additions){
+                                        this.points.push(new KeyPoint(add))
+                                    }
 
 
-                        for(const add of segment_additions){
+                                    for(const add of segment_additions){
 
-                            let id = add[0];
-                            let curves = add[1];
+                                        let id = add[0];
+                                        let curves = add[1];
 
-                            let point_ids = id.split('-');
-                            let first_point = this.points[Number(point_ids[0])];
-                            let next_point = this.points[Number(point_ids[0])];
+                                        let point_ids = id.split('-');
+                                        let first_point = this.points[Number(point_ids[0])];
+                                        let next_point = this.points[Number(point_ids[0])];
 
-                            this.segments[id] = new Segment(curves, first_point, next_point);
-                        }
-
-
-
-
-
-                        for(const add of contour_additions){
-
-                            let id = add[0];
-
-                            if(add[1] ===0) this.contours[id].hide();
-                            else{
-
-                                let key_point_ids = add[1];
-                                this.contours.push(this.new_contour(key_point_ids));
-
-
-                            }
-                        }
-
-            */
+                                        this.segments[id] = new Segment(curves, first_point, next_point);
+                                    }
 
 
 
+/*
+
+                                    for(const add of contour_additions){
+
+                                        let id = add[0];
+
+                                        if(add[1] ===0) this.contours[id].hide();
+                                        else{
+
+                                            let key_point_ids = add[1];
+                                            this.contours.push(this.new_contour(key_point_ids));
+
+
+                                        }
+                                    }
+
+
+
+*/
 
                         let edits = update[1];
 
@@ -992,10 +1001,7 @@ const vvgl = (function(canvas, options={}) {
 
                             if(this.segments[id]){
 
-                                console.log(this.segments[id]);
-
-
-                          //      this.segments[id].update(new_curves);
+                                this.segments[id].update(new_curves);
                             }
 
                         }
@@ -1080,6 +1086,8 @@ const vvgl = (function(canvas, options={}) {
             const data = new Float32Array(this.size*21);
             const shape = this;
 
+            let offset = 0;
+
 
             for (let i = 0; i < this.contours.length; i++){
 
@@ -1094,8 +1102,6 @@ const vvgl = (function(canvas, options={}) {
 
                     for (let k = 0; k < segment.curves.length;k++){
 
-                        let offset = (contour.offset + segment.offset + k)*21;
-
                         data.set(segment.curves[k], offset);
                         data.set(segment.key_first.array(), offset+8);
                         data.set(segment.key_previous.array(), offset+10);
@@ -1103,6 +1109,8 @@ const vvgl = (function(canvas, options={}) {
                         data.set(segment.key_last.array(), offset+14);
                         data.set(shape.xy, offset+16);
                         data.set(shape.color, offset+18);
+
+                        offset+=21;
 
                     }
 
@@ -1170,6 +1178,7 @@ const vvgl = (function(canvas, options={}) {
             let shape = this.shapes[shape_index];
 
             shape.update(update);
+            this.buffer_data.fill(0);
             this.buffer_data.set(shape.getBufferData(), shape.offset*21);
         }
 
