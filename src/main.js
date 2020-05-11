@@ -121,6 +121,7 @@ const vvgl = (function(canvas, options={}) {
             "attribute vec2 first;",
             "attribute vec2 last;",
             "attribute vec2 next;",
+            "attribute vec2 previous;",
             "uniform vec2 camera_offset;",
             "uniform vec2 resolution;",
             "varying lowp vec3 vColor;",
@@ -138,7 +139,7 @@ const vvgl = (function(canvas, options={}) {
                 "vec2 point=  vec2(dot(t_vector, x_vector), dot(t_vector, y_vector));",
 
                 "vec2 s = (last-first)/length(last-first);",
-                "vec2 d = (next-first)/length(next-first);",
+                "vec2 d = (next-previous)/length(last-first);",
 
                 "vec2 sp  = vec2(-s.y, s.x);",
                 "vec2 dp  = vec2(-d.y, d.x);",
@@ -146,7 +147,7 @@ const vvgl = (function(canvas, options={}) {
                 "float f = dot(point, s);",
                 "float n = dot(point, sp);",
 
-                "vec2 transformed = (f*d + n*dp + first +offset + camera_offset)*resolution - 1.0; ",
+                "vec2 transformed = (f*d + n*dp  + previous+offset + camera_offset)*resolution - 1.0; ",
 
                 "vColor = color/256.0;",
                 "gl_Position = vec4(transformed, 0, 1);",
@@ -180,12 +181,13 @@ const vvgl = (function(canvas, options={}) {
             "attribute vec2 first;",
             "attribute vec2 last;",
             "attribute vec2 next;",
+            "attribute vec2 previous;",
             "varying lowp vec3 vColor;",
             "void main(void) {",
 
                 "if(last == next){",
 
-                    "vec2 point = (vec2(x1, y1) + first + offset + camera_offset)*resolution - 1.0; ",
+                    "vec2 point = (vec2(x1, y1) + previous + offset + camera_offset)*resolution - 1.0; ",
 
                     "vColor = color/256.0;",
                     "gl_Position = vec4(point, 0, 1.0);",
@@ -196,10 +198,8 @@ const vvgl = (function(canvas, options={}) {
 
                     "vec2 point = vec2(x1, y1);",
 
-
                     "vec2 s = (last-first)/length(last-first);",
-                    "vec2 d = (next-first)/length(last-first);",
-
+                    "vec2 d = (next-previous)/length(last-first);",
 
                     "vec2 sp  = vec2(-s.y, s.x);",
                     "vec2 dp  = vec2(-d.y, d.x);",
@@ -207,8 +207,7 @@ const vvgl = (function(canvas, options={}) {
                     "float f = dot(point, s);",
                     "float n = dot(point, sp);",
 
-
-                    "vec2 transformed = (f*d + n*dp + first +offset + camera_offset)*resolution - 1.0; ",
+                    "vec2 transformed = (f*d + n*dp + previous +offset + camera_offset)*resolution - 1.0; ",
 
                     "vColor = color/256.0;",
                     "gl_Position = vec4(transformed, 0, 1.0);",
@@ -237,7 +236,7 @@ const vvgl = (function(canvas, options={}) {
 
 
         const uniforms = ["resolution", "camera_offset"];
-        const attributes = ["t_vector", "x_vector", "y_vector",  "offset", "color", "first", "last", "next"];
+        const attributes = ["t_vector", "x_vector", "y_vector",  "offset", "color", "first", "last", "next", "previous"];
 
 
         uniforms.forEach(key => locations[key] = gl.getUniformLocation(program, key));
@@ -257,7 +256,7 @@ const vvgl = (function(canvas, options={}) {
 
 
         const uniforms = ["resolution", "camera_offset"];
-        const attributes = [ "offset", "color", "x1", "y1", "first", "last", "next"];
+        const attributes = [ "offset", "color", "x1", "y1", "first", "last", "next", "previous"];
 
 
         uniforms.forEach(key => locations[key] = gl.getUniformLocation(program, key));
@@ -415,13 +414,14 @@ const vvgl = (function(canvas, options={}) {
 
 
         gl.bindBuffer(gl.ARRAY_BUFFER, bezier_buffer);
-        gl.vertexAttribPointer(polygonLocations["x1"], 4, gl.FLOAT, false, 76, 0);
-        gl.vertexAttribPointer(polygonLocations["y1"], 4, gl.FLOAT, false, 76, 16);
-        gl.vertexAttribPointer(polygonLocations["first"], 4, gl.FLOAT, false, 76, 32);
-        gl.vertexAttribPointer(polygonLocations["next"], 4, gl.FLOAT, false, 76, 40);
-        gl.vertexAttribPointer(polygonLocations["last"], 4, gl.FLOAT, false, 76, 48);
-        gl.vertexAttribPointer(polygonLocations["offset"], 4, gl.FLOAT, false, 76, 56);
-        gl.vertexAttribPointer(polygonLocations["color"], 4, gl.FLOAT, false, 76, 64);
+        gl.vertexAttribPointer(polygonLocations["x1"], 4, gl.FLOAT, false, 84, 0);
+        gl.vertexAttribPointer(polygonLocations["y1"], 4, gl.FLOAT, false, 84, 16);
+        gl.vertexAttribPointer(polygonLocations["first"], 4, gl.FLOAT, false, 84, 32);
+        gl.vertexAttribPointer(polygonLocations["previous"], 4, gl.FLOAT, false, 84, 40);
+        gl.vertexAttribPointer(polygonLocations["next"], 4, gl.FLOAT, false, 84, 48);
+        gl.vertexAttribPointer(polygonLocations["last"], 4, gl.FLOAT, false, 84, 56);
+        gl.vertexAttribPointer(polygonLocations["offset"], 4, gl.FLOAT, false, 84, 64);
+        gl.vertexAttribPointer(polygonLocations["color"], 4, gl.FLOAT, false, 84, 72);
 
 
         if(isWebGL2){
@@ -430,6 +430,7 @@ const vvgl = (function(canvas, options={}) {
             gl.vertexAttribDivisor(polygonLocations["color"], 0);
             gl.vertexAttribDivisor(polygonLocations["offset"], 0);
             gl.vertexAttribDivisor(polygonLocations["next"], 0);
+            gl.vertexAttribDivisor(polygonLocations["previous"], 0);
             gl.vertexAttribDivisor(polygonLocations["first"], 0);
             gl.vertexAttribDivisor(polygonLocations["last"], 0);
         } else{
@@ -437,6 +438,7 @@ const vvgl = (function(canvas, options={}) {
             extensions.angle.vertexAttribDivisorANGLE(polygonLocations["x1"], 0);
             extensions.angle.vertexAttribDivisorANGLE(polygonLocations["y1"], 0);
             extensions.angle.vertexAttribDivisorANGLE(polygonLocations["color"], 0);
+            extensions.angle.vertexAttribDivisorANGLE(polygonLocations["previous"], 0);
             extensions.angle.vertexAttribDivisorANGLE(polygonLocations["offset"], 0);
             extensions.angle.vertexAttribDivisorANGLE(polygonLocations["next"], 0);
             extensions.angle.vertexAttribDivisorANGLE(polygonLocations["first"], 0);
@@ -457,13 +459,14 @@ const vvgl = (function(canvas, options={}) {
 
         gl.bindBuffer(gl.ARRAY_BUFFER, bezier_buffer);
 
-        gl.vertexAttribPointer(bezierLocations["x_vector"], 4, gl.FLOAT, false, 76, 0);
-        gl.vertexAttribPointer(bezierLocations["y_vector"], 4, gl.FLOAT, false, 76, 16);
-        gl.vertexAttribPointer(bezierLocations["first"], 4, gl.FLOAT, false, 76, 32);
-        gl.vertexAttribPointer(bezierLocations["next"], 4, gl.FLOAT, false, 76, 40);
-        gl.vertexAttribPointer(bezierLocations["last"], 4, gl.FLOAT, false, 76, 48);
-        gl.vertexAttribPointer(bezierLocations["offset"], 4, gl.FLOAT, false, 76, 56);
-        gl.vertexAttribPointer(bezierLocations["color"], 4, gl.FLOAT, false, 76, 64);
+        gl.vertexAttribPointer(bezierLocations["x_vector"], 4, gl.FLOAT, false, 84, 0);
+        gl.vertexAttribPointer(bezierLocations["y_vector"], 4, gl.FLOAT, false, 84, 16);
+        gl.vertexAttribPointer(bezierLocations["first"], 4, gl.FLOAT, false, 84, 32);
+        gl.vertexAttribPointer(bezierLocations["previous"], 4, gl.FLOAT, false, 84, 40);
+        gl.vertexAttribPointer(bezierLocations["next"], 4, gl.FLOAT, false, 84, 48);
+        gl.vertexAttribPointer(bezierLocations["last"], 4, gl.FLOAT, false, 84, 56);
+        gl.vertexAttribPointer(bezierLocations["offset"], 4, gl.FLOAT, false, 84, 64);
+        gl.vertexAttribPointer(bezierLocations["color"], 4, gl.FLOAT, false, 84, 72);
 
         
         if(isWebGL2){
@@ -472,6 +475,7 @@ const vvgl = (function(canvas, options={}) {
             gl.vertexAttribDivisor(bezierLocations["color"], 1);
             gl.vertexAttribDivisor(bezierLocations["offset"], 1);
             gl.vertexAttribDivisor(bezierLocations["next"], 1);
+            gl.vertexAttribDivisor(bezierLocations["previous"], 1);
             gl.vertexAttribDivisor(bezierLocations["first"], 1);
             gl.vertexAttribDivisor(bezierLocations["last"], 1);
 
@@ -481,6 +485,7 @@ const vvgl = (function(canvas, options={}) {
             extensions.angle.vertexAttribDivisorANGLE(bezierLocations["y_vector"], 1);
             extensions.angle.vertexAttribDivisorANGLE(bezierLocations["color"], 1);
             extensions.angle.vertexAttribDivisorANGLE(bezierLocations["offset"], 1);
+            extensions.angle.vertexAttribDivisorANGLE(bezierLocations["previous"], 1);
             extensions.angle.vertexAttribDivisorANGLE(bezierLocations["next"], 1);
             extensions.angle.vertexAttribDivisorANGLE(bezierLocations["first"], 1);
             extensions.angle.vertexAttribDivisorANGLE(bezierLocations["last"], 1);
@@ -506,7 +511,7 @@ const vvgl = (function(canvas, options={}) {
 
                 if(shape.size > 0 && shape.contours[i].size > 0){
 
-                //    gl.drawArrays(gl.TRIANGLE_FAN, shape.offset + shape.contours[i].offset,  shape.contours[i].size);
+                    gl.drawArrays(gl.TRIANGLE_FAN, shape.offset + shape.contours[i].offset,  shape.contours[i].size);
                 }
 
 
@@ -525,15 +530,16 @@ const vvgl = (function(canvas, options={}) {
 
         if(l > 0){
 
-            gl.vertexAttribPointer(bezierLocations["x_vector"], 4, gl.FLOAT, false, 76, 76*offset);
-            gl.vertexAttribPointer(bezierLocations["y_vector"], 4, gl.FLOAT, false, 76, 16 + 76*offset);
+            gl.vertexAttribPointer(bezierLocations["x_vector"], 4, gl.FLOAT, false, 84, 84*offset);
+            gl.vertexAttribPointer(bezierLocations["y_vector"], 4, gl.FLOAT, false, 84, 16 + 84*offset);
 
-            gl.vertexAttribPointer(bezierLocations["first"], 4, gl.FLOAT, false, 76, 32 + 76*offset);
-            gl.vertexAttribPointer(bezierLocations["next"], 4, gl.FLOAT, false, 76, 40 + 76*offset);
-            gl.vertexAttribPointer(bezierLocations["last"], 4, gl.FLOAT, false, 76, 48 + 76*offset);
+            gl.vertexAttribPointer(bezierLocations["first"], 4, gl.FLOAT, false, 84, 32 + 84*offset);
+            gl.vertexAttribPointer(bezierLocations["previous"], 4, gl.FLOAT, false, 84, 40 + 84*offset);
+            gl.vertexAttribPointer(bezierLocations["next"], 4, gl.FLOAT, false, 84, 48 + 84*offset);
+            gl.vertexAttribPointer(bezierLocations["last"], 4, gl.FLOAT, false, 84, 56 + 84*offset);
 
-            gl.vertexAttribPointer(bezierLocations["offset"], 4, gl.FLOAT, false, 76, 56 + 76*offset);
-            gl.vertexAttribPointer(bezierLocations["color"], 4, gl.FLOAT, false, 76, 64 + 76*offset);
+            gl.vertexAttribPointer(bezierLocations["offset"], 4, gl.FLOAT, false, 84, 64 + 84*offset);
+            gl.vertexAttribPointer(bezierLocations["color"], 4, gl.FLOAT, false, 84, 72 + 84*offset);
 
             if(isWebGL2) gl.drawArraysInstanced(gl.TRIANGLE_FAN,  0, num_bezier_vertices, l);
             else extensions.angle.drawArraysInstancedANGLE(gl.TRIANGLE_FAN,  0, num_bezier_vertices, l);
@@ -686,7 +692,7 @@ const vvgl = (function(canvas, options={}) {
         constructor(curves, key_first, key_last){
 
 
-            this.key_first = key_first;
+            this.key_previous = key_first;
             this.key_next = key_last;
 
             this.set(curves);
@@ -703,7 +709,7 @@ const vvgl = (function(canvas, options={}) {
             let start = {x: 0, y: 0};
 
             this.key_last = new KeyPoint(JSON.parse(JSON.stringify(this.key_next.array())));
-          //  this.key_last = this.key_next;
+            this.key_first = new KeyPoint(JSON.parse(JSON.stringify(this.key_previous.array())));
 
             let end = this.key_last;
 
@@ -798,6 +804,8 @@ const vvgl = (function(canvas, options={}) {
                 size +=segment.size;
             }
 
+            console.log(this.segments);
+
             this.size = size;
 
 
@@ -851,7 +859,10 @@ const vvgl = (function(canvas, options={}) {
 
             let offset= 0;
 
+
             for (let i=0; i < data.contours.length; i++){
+
+
 
                 let contour = new Contour(data.contours[i]);
 
@@ -937,8 +948,10 @@ const vvgl = (function(canvas, options={}) {
 
             */
 
-                        let edits = update[1];
 
+
+
+                        let edits = update[1];
 
 
 
@@ -953,8 +966,7 @@ const vvgl = (function(canvas, options={}) {
 
                             let id = edit[0];
                             let dx = edit[1];
-                            let dy = -1*edit[2];
-
+                            let dy = edit[2];
 
 
                             if(this.points[id]){
@@ -1065,7 +1077,7 @@ const vvgl = (function(canvas, options={}) {
         getBufferData(){
 
 
-            const data = new Float32Array(this.size*19);
+            const data = new Float32Array(this.size*21);
             const shape = this;
 
 
@@ -1082,14 +1094,15 @@ const vvgl = (function(canvas, options={}) {
 
                     for (let k = 0; k < segment.curves.length;k++){
 
-                        let offset = (contour.offset + segment.offset + k)*19;
+                        let offset = (contour.offset + segment.offset + k)*21;
 
                         data.set(segment.curves[k], offset);
                         data.set(segment.key_first.array(), offset+8);
-                        data.set(segment.key_last.array(), offset+10);
+                        data.set(segment.key_previous.array(), offset+10);
                         data.set(segment.key_next.array(), offset+12);
-                        data.set(shape.xy, offset+14);
-                        data.set(shape.color, offset+16);
+                        data.set(segment.key_last.array(), offset+14);
+                        data.set(shape.xy, offset+16);
+                        data.set(shape.color, offset+18);
 
                     }
 
@@ -1139,12 +1152,12 @@ const vvgl = (function(canvas, options={}) {
         getBufferData(){
 
 
-            const bezier_buffer_data = new Float32Array((this.size+1)*19);
+            const bezier_buffer_data = new Float32Array((this.size+1)*21);
 
 
             this.shapes.forEach(function (shape) {
 
-                bezier_buffer_data.set(shape.getBufferData(), shape.offset*19);
+                bezier_buffer_data.set(shape.getBufferData(), shape.offset*21);
             });
 
 
@@ -1157,7 +1170,7 @@ const vvgl = (function(canvas, options={}) {
             let shape = this.shapes[shape_index];
 
             shape.update(update);
-            this.buffer_data.set(shape.getBufferData(), shape.offset*19);
+            this.buffer_data.set(shape.getBufferData(), shape.offset*21);
         }
 
     }
