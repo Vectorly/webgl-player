@@ -114,11 +114,11 @@ const vvgl = (function(canvas, options={}) {
             "attribute vec4 t_vector;",
             "attribute vec4 x_vector;",
             "attribute vec4 y_vector;",
+            "attribute vec3 color;",
+            "attribute vec2 offset;",
             "attribute vec2 first;",
             "attribute vec2 last;",
             "attribute vec2 next;",
-            "attribute vec3 color;",
-            "attribute vec2 offset;",
             "uniform vec2 camera_offset;",
             "uniform vec2 resolution;",
             "varying lowp vec3 vColor;",
@@ -132,8 +132,26 @@ const vvgl = (function(canvas, options={}) {
                 "gl_Position = vec4(point, 0, 1);",
             "}",
             "else{",
+
+
+                "vec2 point=  vec2(dot(t_vector, x_vector), dot(t_vector, y_vector));",
+
+                "mat2 rot = mat2(vec2(0.0, 1.0), vec2(-1.0, 0.0));",
+
+                "vec2 s = last - first;",
+                "vec2 d = next - first;",
+
+                "vec2 sp  = rot*s;",
+                "vec2 dp = rot*d;",
+
+
+                "float f = dot(point, s);",
+                "float n = dot(point, sp);",
+
+                "vec2 transformed = (f*d + n*dp + first +offset + camera_offset)*resolution - 1.0; ",
+
                 "vColor = color/256.0;",
-                "gl_Position = vec4(0,0, 0, 1);",
+                "gl_Position = vec4(transformed, 0, 1);",
             "}",
 
             "}"
@@ -176,20 +194,48 @@ const vvgl = (function(canvas, options={}) {
         let gVertexShader = createAndCompileShader(gl.VERTEX_SHADER, [
             "attribute float x1;",
             "attribute float y1;",
-            "attribute vec2 first;",
-            "attribute vec2 last;",
-            "attribute vec2 next;",
             "attribute vec3 color;",
             "attribute vec2 offset;",
             "uniform vec2 resolution;",
             "uniform vec2 camera_offset;",
+            "attribute vec2 first;",
+            "attribute vec2 last;",
+            "attribute vec2 next;",
             "varying lowp vec3 vColor;",
             "void main(void) {",
 
-            "vec2 point = (vec2(x1, y1)+offset + camera_offset)*resolution - 1.0; ",
+                "if(vec2(0.0, 0.0) == vec2(0.0, 0.0)){",
 
-            "vColor = color/256.0;",
-            "gl_Position = vec4(point, 0, 1.0);",
+                    "vec2 point = (vec2(x1, y1)+offset + camera_offset)*resolution - 1.0; ",
+
+                    "vColor = color/256.0;",
+                    "gl_Position = vec4(point, 0, 1.0);",
+
+
+                "}",
+                "else{",
+
+
+                    "vec2 point = vec2(x1, y1);",
+
+                    "mat2 rot = mat2(vec2(0.0, 1.0), vec2(-1.0, 0.0));",
+
+
+                    "vec2 s = last - first;",
+                    "vec2 d = next - first;",
+
+                    "vec2 sp  = rot*s;",
+                    "vec2 dp = rot*d;",
+
+                    "float f = dot(point, s);",
+                    "float n = dot(point, sp);",
+
+                    "vec2 transformed = (f*d + n*dp + first +offset + camera_offset)*resolution - 1.0; ",
+
+                    "vColor = color/256.0;",
+                    "gl_Position = vec4(transformed, 0, 1.0);",
+
+                "}",
             "}"
         ].join("\n"));
 
