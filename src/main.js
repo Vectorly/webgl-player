@@ -125,8 +125,7 @@ const vvgl = (function(canvas, options={}) {
 
             "void main(void) {",
 
-
-            "if(1 > 0){",
+            "if(vec2(0.0, 0.0) == vec2(0.0, 0.0)){",
                 "vec2 point = (vec2(dot(t_vector, x_vector), dot(t_vector, y_vector)) + offset + camera_offset)*resolution - 1.0;",
                 "vColor = color/256.0;",
                 "gl_Position = vec4(point, 0, 1);",
