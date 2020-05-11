@@ -137,14 +137,12 @@ const vvgl = (function(canvas, options={}) {
 
                 "vec2 point=  vec2(dot(t_vector, x_vector), dot(t_vector, y_vector));",
 
-                "mat2 rot = mat2(vec2(0.0, 1.0), vec2(-1.0, 0.0));",
+                "vec2 s = (last-first)/length(last-first);",
+                "vec2 d = (next-first)/length(next-first);",
 
-                "vec2 s = last - first;",
-                "vec2 d = next - first;",
 
-                "vec2 sp  = rot*s;",
-                "vec2 dp = rot*d;",
-
+                "vec2 sp  = vec2(-s.y, s.x);",
+                "vec2 dp  = vec2(-d.y, d.x);",
 
                 "float f = dot(point, s);",
                 "float n = dot(point, sp);",
@@ -241,26 +239,6 @@ const vvgl = (function(canvas, options={}) {
             "}"
         ].join("\n"));
 
-
-        /*
-
-                    "vec2 point = vec2(x1, y1);",
-
-                    "mat2 rot = mat2(vec2(0.0, 1.0), vec2(-1.0, 0.0));",
-
-
-                    "vec2 s = last - first;",
-                    "vec2 d = next - first;",
-
-                    "vec2 sp  = rot*s;",
-                    "vec2 dp = rot*d;",
-
-                    "float f = dot(point, s);",
-                    "float n = dot(point, sp);",
-
-                    "vec2 transformed = (f*d + n*dp + first +offset + camera_offset)*resolution - 1.0; ",
-
-         */
 
         let gFragmentShader = createAndCompileShader(gl.FRAGMENT_SHADER, [
             "varying lowp vec3 vColor;",
@@ -577,8 +555,8 @@ const vvgl = (function(canvas, options={}) {
             gl.vertexAttribPointer(bezierLocations["offset"], 4, gl.FLOAT, false, 76, 56 + 76*offset);
             gl.vertexAttribPointer(bezierLocations["color"], 4, gl.FLOAT, false, 76, 64 + 76*offset);
 
-       //     if(isWebGL2) gl.drawArraysInstanced(gl.TRIANGLE_FAN,  0, num_bezier_vertices, l);
-         //   else extensions.angle.drawArraysInstancedANGLE(gl.TRIANGLE_FAN,  0, num_bezier_vertices, l);
+            if(isWebGL2) gl.drawArraysInstanced(gl.TRIANGLE_FAN,  0, num_bezier_vertices, l);
+            else extensions.angle.drawArraysInstancedANGLE(gl.TRIANGLE_FAN,  0, num_bezier_vertices, l);
 
         }
 
@@ -978,11 +956,8 @@ const vvgl = (function(canvas, options={}) {
                         let contour_edits = edits[2];
 
 
-                        for (let i =0; i < this.points.length; i++){
 
-                            this.points[i].x +=-50;
-                        }
-/*
+
                         for(const edit of key_point_edits){
 
                             let id = edit[0];
@@ -993,17 +968,8 @@ const vvgl = (function(canvas, options={}) {
 
                             if(this.points[id]){
 
-
-                                console.log(`Editing point ${id}`);
-                                console.log(edit);
-
-
-                                console.log( JSON.parse(JSON.stringify(this.points[id].array())));
-
-                                //this.points[id].x +=dx;
-                                //this.points[id].y +=dy;
-
-                                console.log( JSON.parse(JSON.stringify(this.points[id].array())));
+                                this.points[id].x +=dx;
+                                this.points[id].y +=dy;
 
 
                             }
@@ -1011,7 +977,7 @@ const vvgl = (function(canvas, options={}) {
                         }
 
 
-                        */
+
 /*
                         for(const edit of segment_edits){
 
