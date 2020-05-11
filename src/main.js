@@ -140,7 +140,6 @@ const vvgl = (function(canvas, options={}) {
                 "vec2 s = (last-first)/length(last-first);",
                 "vec2 d = (next-first)/length(next-first);",
 
-
                 "vec2 sp  = vec2(-s.y, s.x);",
                 "vec2 dp  = vec2(-d.y, d.x);",
 
