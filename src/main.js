@@ -351,14 +351,8 @@ const vvgl = (function(canvas, options={}) {
     function setBufferData() {
 
 
-
-        const bezier_buffer_data = new Float32Array((shape_list.size+1)*19);
-
-        bezier_buffer_data.set(shape_list.getBufferData(), 0);
-
-
         gl.bindBuffer(gl.ARRAY_BUFFER, bezier_buffer);
-        gl.bufferData(gl.ARRAY_BUFFER, bezier_buffer_data, gl.DYNAMIC_DRAW);
+        gl.bufferData(gl.ARRAY_BUFFER, shape_list.buffer_data, gl.DYNAMIC_DRAW);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, t_buffer);
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(t_array), gl.STATIC_DRAW);
@@ -711,7 +705,7 @@ const vvgl = (function(canvas, options={}) {
 
 
             this.key_first = key_first;
-            this.key_last = key_last;
+            this.key_next = key_last;
 
             this.set(curves);
 
@@ -725,6 +719,8 @@ const vvgl = (function(canvas, options={}) {
             this.size = curves.length;
 
             let start = {x: 0, y: 0};
+
+            this.key_last = new KeyPoint(JSON.parse(JSON.stringify(this.key_next.array())));
 
             let end = this.key_last;
 
@@ -875,9 +871,6 @@ const vvgl = (function(canvas, options={}) {
                 this.points.push(... contour.key_points);
 
 
-
-
-
                 // Global Segments
                 for(let j = 0; j < contour.segments.length; j++){
                     let first_point_id = this.points.length + j;
@@ -898,56 +891,58 @@ const vvgl = (function(canvas, options={}) {
 
 
 
+
+
         }
 
         update(update){
 
 
-
-            let additions = update[0];
-
-
-            let key_point_additions = additions[0];
-            let segment_additions = additions[1];
-            let contour_additions = additions[2];
+            /*
+                        let additions = update[0];
 
 
-            for(const add of key_point_additions){
-                this.points.push(new KeyPoint(add))
-            }
+                        let key_point_additions = additions[0];
+                        let segment_additions = additions[1];
+                        let contour_additions = additions[2];
 
 
-            for(const add of segment_additions){
-
-                let id = add[0];
-                let curves = add[1];
-
-                let point_ids = id.split('-');
-                let first_point = this.points[Number(point_ids[0])];
-                let next_point = this.points[Number(point_ids[0])];
-
-                this.segments[id] = new Segment(curves, first_point, next_point);
-            }
+                        for(const add of key_point_additions){
+                            this.points.push(new KeyPoint(add))
+                        }
 
 
+                        for(const add of segment_additions){
+
+                            let id = add[0];
+                            let curves = add[1];
+
+                            let point_ids = id.split('-');
+                            let first_point = this.points[Number(point_ids[0])];
+                            let next_point = this.points[Number(point_ids[0])];
+
+                            this.segments[id] = new Segment(curves, first_point, next_point);
+                        }
 
 
 
-            for(const add of contour_additions){
-
-                let id = add[0];
-
-                if(add[1] ===0) this.contours[id].hide();
-                else{
-
-                    let key_point_ids = add[1];
-                    this.contours.push(this.new_contour(key_point_ids));
 
 
-                }
-            }
+                        for(const add of contour_additions){
+
+                            let id = add[0];
+
+                            if(add[1] ===0) this.contours[id].hide();
+                            else{
+
+                                let key_point_ids = add[1];
+                                this.contours.push(this.new_contour(key_point_ids));
 
 
+                            }
+                        }
+
+            */
 
             let edits = update[1];
 
@@ -971,7 +966,7 @@ const vvgl = (function(canvas, options={}) {
                 }
 
             }
-
+/*
             for(const edit of segment_edits){
 
                 let id = edit[0];
@@ -998,7 +993,7 @@ const vvgl = (function(canvas, options={}) {
             }
 
 
-
+*/
 
         }
 
@@ -1081,7 +1076,7 @@ const vvgl = (function(canvas, options={}) {
                         data.set(segment.curves[k], offset);
                         data.set(segment.key_first.array(), offset+8);
                         data.set(segment.key_last.array(), offset+10);
-                        data.set(segment.key_last.array(), offset+12);
+                        data.set(segment.key_next.array(), offset+12);
                         data.set(shape.xy, offset+14);
                         data.set(shape.color, offset+16);
 
@@ -1122,20 +1117,28 @@ const vvgl = (function(canvas, options={}) {
             }
 
 
+
             this.size = size;
+
+
+            this.buffer_data = this.getBufferData();
 
         }
 
         getBufferData(){
 
-            let data = [];
+
+            const bezier_buffer_data = new Float32Array((this.size+1)*19);
+
 
             this.shapes.forEach(function (shape) {
-                data.push.apply(data, shape.getBufferData());
+
+                bezier_buffer_data.set(shape.getBufferData(), shape.offset*19);
             });
 
 
-            return data;
+
+            return bezier_buffer_data;
         }
 
     }
