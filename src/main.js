@@ -413,6 +413,8 @@ const vvgl = (function(canvas, options={}) {
 
         update_manager.update();
 
+        gl.bufferSubData(gl.ARRAY_BUFFER, 0, shape_list.buffer_data, 0, shape_list.buffer_data.length);
+
 
         return null;
 
@@ -671,7 +673,7 @@ const vvgl = (function(canvas, options={}) {
     function play() {
 
         render();
-   //     window.requestAnimationFrame(step);
+        window.requestAnimationFrame(step);
 
     }
 
@@ -1141,6 +1143,14 @@ const vvgl = (function(canvas, options={}) {
             return bezier_buffer_data;
         }
 
+        update(shape_index, update){
+
+            let shape = this.shapes[shape_index];
+
+            shape.update(update);
+            this.buffer_data.set(shape.getBufferData(), shape.offset*19);
+        }
+
     }
 
     class Bucket{
@@ -1168,7 +1178,7 @@ const vvgl = (function(canvas, options={}) {
 
     class UpdateManager{
 
-        constructor(relative_updates, shapes, num_frames){
+        constructor(relative_updates, shape_list, num_frames){
 
             this.updates = new Array(num_frames);
 
@@ -1182,7 +1192,9 @@ const vvgl = (function(canvas, options={}) {
                  else  this.updates[n] = update;
             }
 
-            this.shapes = shapes;
+            this.shape_list = shape_list;
+
+
 
 
         }
@@ -1198,7 +1210,7 @@ const vvgl = (function(canvas, options={}) {
 
             for (const update of updates){
 
-                this.shapes[update[0]].update(update[1]);
+                this.shape_list.update(update[0], update[1]);
 
 
             }
@@ -1240,7 +1252,7 @@ const vvgl = (function(canvas, options={}) {
 
         shape_list = new ShapeList(json.shapes);
         bucket_manager = new BucketManager(shape_list.shapes);
-        update_manager = new UpdateManager(json.updates, shape_list.shapes, json.duration);
+        update_manager = new UpdateManager(json.updates, shape_list, json.duration);
 
 
         setBufferData();
