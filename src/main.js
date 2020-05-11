@@ -216,6 +216,33 @@ const vvgl = (function(canvas, options={}) {
                 "}",
                 "else{",
 
+                    "vec2 point = vec2(x1, y1);",
+
+
+                    "vec2 s = (last-first)/length(last-first);",
+                    "vec2 d = (next-first)/length(next-first);",
+
+
+                    "vec2 sp  = vec2(-s.y, s.x);",
+                    "vec2 dp  = vec2(-d.y, d.x);",
+
+                    "float f = dot(point, s);",
+                    "float n = dot(point, sp);",
+
+
+                    "vec2 transformed = (f*d + n*dp + first +offset + camera_offset)*resolution - 1.0; ",
+
+                    "vColor = color/256.0;",
+                    "gl_Position = vec4(transformed, 0, 1.0);",
+
+
+
+                "}",
+            "}"
+        ].join("\n"));
+
+
+        /*
 
                     "vec2 point = vec2(x1, y1);",
 
@@ -233,12 +260,7 @@ const vvgl = (function(canvas, options={}) {
 
                     "vec2 transformed = (f*d + n*dp + first +offset + camera_offset)*resolution - 1.0; ",
 
-                    "vColor = color/256.0;",
-                    "gl_Position = vec4(transformed, 0, 1.0);",
-
-                "}",
-            "}"
-        ].join("\n"));
+         */
 
         let gFragmentShader = createAndCompileShader(gl.FRAGMENT_SHADER, [
             "varying lowp vec3 vColor;",
@@ -555,8 +577,8 @@ const vvgl = (function(canvas, options={}) {
             gl.vertexAttribPointer(bezierLocations["offset"], 4, gl.FLOAT, false, 76, 56 + 76*offset);
             gl.vertexAttribPointer(bezierLocations["color"], 4, gl.FLOAT, false, 76, 64 + 76*offset);
 
-            if(isWebGL2) gl.drawArraysInstanced(gl.TRIANGLE_FAN,  0, num_bezier_vertices, l);
-            else extensions.angle.drawArraysInstancedANGLE(gl.TRIANGLE_FAN,  0, num_bezier_vertices, l);
+       //     if(isWebGL2) gl.drawArraysInstanced(gl.TRIANGLE_FAN,  0, num_bezier_vertices, l);
+         //   else extensions.angle.drawArraysInstancedANGLE(gl.TRIANGLE_FAN,  0, num_bezier_vertices, l);
 
         }
 
@@ -946,56 +968,78 @@ const vvgl = (function(canvas, options={}) {
 
             */
 
-            let edits = update[1];
+                        let edits = update[1];
 
 
 
-            
-            let key_point_edits = edits[0];
-            let segment_edits = edits[1];
-            let contour_edits = edits[2];
+
+                        let key_point_edits = edits[0];
+                        let segment_edits = edits[1];
+                        let contour_edits = edits[2];
 
 
-            for(const edit of key_point_edits){
+                        for (let i =0; i < this.points.length; i++){
 
-                let id = edit[0];
-                let dx = edit[1];
-                let dy = edit[2];
-
-                if(this.points[id]){
-                    this.points[id].x +=dx;
-                    this.points[id].y +=dy;
-                }
-
-            }
+                            this.points[i].x +=-50;
+                        }
 /*
-            for(const edit of segment_edits){
+                        for(const edit of key_point_edits){
 
-                let id = edit[0];
-                let new_curves = edit[1];
-
-                if(this.segments[id]){
-                    this.segments[id].update(new_curves);
-                }
-
-            }
-
-            for(const edit of contour_edits){
-
-                let id = edit[0];
-                let diffs= edit[1];
-
-                let key_point_ids  = this.constructor.parse_diffs(this.contours[id].key_point_ids, diffs);
-
-
-              //  this.contours[id] = this.new_contour(key_point_ids);
+                            let id = edit[0];
+                            let dx = edit[1];
+                            let dy = edit[2];
 
 
 
-            }
+                            if(this.points[id]){
 
+
+                                console.log(`Editing point ${id}`);
+                                console.log(edit);
+
+
+                                console.log( JSON.parse(JSON.stringify(this.points[id].array())));
+
+                                //this.points[id].x +=dx;
+                                //this.points[id].y +=dy;
+
+                                console.log( JSON.parse(JSON.stringify(this.points[id].array())));
+
+
+                            }
+
+                        }
+
+
+                        */
+/*
+                        for(const edit of segment_edits){
+
+                            let id = edit[0];
+                            let new_curves = edit[1];
+
+                            if(this.segments[id]){
+                                this.segments[id].update(new_curves);
+                            }
+
+                        }
+
+                        for(const edit of contour_edits){
+
+                            let id = edit[0];
+                            let diffs= edit[1];
+
+                            let key_point_ids  = this.constructor.parse_diffs(this.contours[id].key_point_ids, diffs);
+
+
+                          //  this.contours[id] = this.new_contour(key_point_ids);
+
+
+
+                        }
 
 */
+
 
         }
 
