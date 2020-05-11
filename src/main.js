@@ -128,7 +128,7 @@ const vvgl = (function(canvas, options={}) {
             "void main(void) {",
 
             "if(last == next){",
-                "vec2 point = (vec2(dot(t_vector, x_vector), dot(t_vector, y_vector)) + offset + camera_offset)*resolution - 1.0;",
+                "vec2 point = (vec2(dot(t_vector, x_vector), dot(t_vector, y_vector)) + first + offset + camera_offset)*resolution - 1.0;",
                 "vColor = color/256.0;",
                 "gl_Position = vec4(point, 0, 1);",
             "}",
@@ -207,7 +207,7 @@ const vvgl = (function(canvas, options={}) {
 
                 "if(last == next){",
 
-                    "vec2 point = (vec2(x1, y1)+offset + camera_offset)*resolution - 1.0; ",
+                    "vec2 point = (vec2(x1, y1) + first + offset + camera_offset)*resolution - 1.0; ",
 
                     "vColor = color/256.0;",
                     "gl_Position = vec4(point, 0, 1.0);",
@@ -410,7 +410,6 @@ const vvgl = (function(canvas, options={}) {
         gl.uniform2fv(bezierLocations["camera_offset"], [offset_x, offset_y]);
 
 
-
     }
 
 
@@ -454,12 +453,18 @@ const vvgl = (function(canvas, options={}) {
             gl.vertexAttribDivisor(polygonLocations["y1"], 0);
             gl.vertexAttribDivisor(polygonLocations["color"], 0);
             gl.vertexAttribDivisor(polygonLocations["offset"], 0);
+            gl.vertexAttribDivisor(polygonLocations["next"], 0);
+            gl.vertexAttribDivisor(polygonLocations["first"], 0);
+            gl.vertexAttribDivisor(polygonLocations["last"], 0);
         } else{
 
             extensions.angle.vertexAttribDivisorANGLE(polygonLocations["x1"], 0);
             extensions.angle.vertexAttribDivisorANGLE(polygonLocations["y1"], 0);
             extensions.angle.vertexAttribDivisorANGLE(polygonLocations["color"], 0);
             extensions.angle.vertexAttribDivisorANGLE(polygonLocations["offset"], 0);
+            extensions.angle.vertexAttribDivisorANGLE(polygonLocations["next"], 0);
+            extensions.angle.vertexAttribDivisorANGLE(polygonLocations["first"], 0);
+            extensions.angle.vertexAttribDivisorANGLE(polygonLocations["last"], 0);
         }
 
 
@@ -490,12 +495,19 @@ const vvgl = (function(canvas, options={}) {
             gl.vertexAttribDivisor(bezierLocations["y_vector"], 1);
             gl.vertexAttribDivisor(bezierLocations["color"], 1);
             gl.vertexAttribDivisor(bezierLocations["offset"], 1);
+            gl.vertexAttribDivisor(bezierLocations["next"], 1);
+            gl.vertexAttribDivisor(bezierLocations["first"], 1);
+            gl.vertexAttribDivisor(bezierLocations["last"], 1);
+
 
         } else {
             extensions.angle.vertexAttribDivisorANGLE(bezierLocations["x_vector"], 1);
             extensions.angle.vertexAttribDivisorANGLE(bezierLocations["y_vector"], 1);
             extensions.angle.vertexAttribDivisorANGLE(bezierLocations["color"], 1);
             extensions.angle.vertexAttribDivisorANGLE(bezierLocations["offset"], 1);
+            extensions.angle.vertexAttribDivisorANGLE(bezierLocations["next"], 1);
+            extensions.angle.vertexAttribDivisorANGLE(bezierLocations["first"], 1);
+            extensions.angle.vertexAttribDivisorANGLE(bezierLocations["last"], 1);
         }
 
 
@@ -665,7 +677,7 @@ const vvgl = (function(canvas, options={}) {
     function play() {
 
         render();
-        window.requestAnimationFrame(step);
+   //     window.requestAnimationFrame(step);
 
     }
 
@@ -712,8 +724,9 @@ const vvgl = (function(canvas, options={}) {
 
             this.size = curves.length;
 
-            let start = this.key_first;
-            let end = this.key_last;
+            let start = {x: 0, y: 0};
+
+            let end = this.key_last - this.key_first;
 
 
 
@@ -723,19 +736,17 @@ const vvgl = (function(canvas, options={}) {
 
                 if(i === curves.length - 1){
 
+
                     if(curve.length ===0)curve = [start.x, start.x, end.x, end.x, start.y, start.y, end.y, end.y];
-                    else curve = [start.x,  curve[0], curve[1], end.x, start.y,curve[2], curve[3], end.y];
+                    else curve = [start.x,  curve[0], curve[1], end.x, start.y,curve[2], curve[3],end.y];
 
 
                 } else {
-
 
                     if(curve.length ===2)curve = [start.x, start.x, curve[0], curve[0], start.y, start.y,curve[1], curve[1] ];
                     else curve = [start.x,  curve[0], curve[1], curve[2], start.y,curve[3], curve[4], curve[5]];
 
                 }
-
-
 
 
                 start = {x: curve[3], y: curve[7]};
