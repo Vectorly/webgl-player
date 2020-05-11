@@ -185,7 +185,7 @@ const vvgl = (function(canvas, options={}) {
             "varying lowp vec3 vColor;",
             "void main(void) {",
 
-                "if(last == next){",
+                "if(1 < 0){",
 
                     "vec2 point = (vec2(x1, y1) + previous + offset + camera_offset)*resolution - 1.0; ",
 
