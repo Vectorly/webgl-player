@@ -114,6 +114,9 @@ const vvgl = (function(canvas, options={}) {
             "attribute vec4 t_vector;",
             "attribute vec4 x_vector;",
             "attribute vec4 y_vector;",
+            "attribute vec2 first;",
+            "attribute vec2 last;",
+            "attribute vec2 next;",
             "attribute vec3 color;",
             "attribute vec2 offset;",
             "uniform vec2 camera_offset;",
@@ -122,9 +125,17 @@ const vvgl = (function(canvas, options={}) {
 
             "void main(void) {",
 
-            "vec2 point = (vec2(dot(t_vector, x_vector), dot(t_vector, y_vector)) + offset + camera_offset)*resolution - 1.0;",
-            "vColor = color/256.0;",
-            "gl_Position = vec4(point, 0, 1);",
+
+            "if(1 > 0){",
+                "vec2 point = (vec2(dot(t_vector, x_vector), dot(t_vector, y_vector)) + offset + camera_offset)*resolution - 1.0;",
+                "vColor = color/256.0;",
+                "gl_Position = vec4(point, 0, 1);",
+            "}",
+            "else{",
+                "vColor = color/256.0;",
+                "gl_Position = vec4(0,0, 0, 1);",
+            "}",
+
             "}"
         ].join("\n"));
 
@@ -141,6 +152,23 @@ const vvgl = (function(canvas, options={}) {
     }
 
 
+    /*
+
+
+      s = last - first
+      d = last2 - first
+
+      sp  = rot*s
+      dp = rot*dp
+
+      f = dot(point, s)
+      n = dot(point, sp)
+
+      (f*d + n*dp + first + offset + camera_offset)*resolution
+
+
+
+     */
 
 
     function initPolygonProgram() {
@@ -148,6 +176,9 @@ const vvgl = (function(canvas, options={}) {
         let gVertexShader = createAndCompileShader(gl.VERTEX_SHADER, [
             "attribute float x1;",
             "attribute float y1;",
+            "attribute vec2 first;",
+            "attribute vec2 last;",
+            "attribute vec2 next;",
             "attribute vec3 color;",
             "attribute vec2 offset;",
             "uniform vec2 resolution;",
@@ -179,7 +210,7 @@ const vvgl = (function(canvas, options={}) {
 
 
         const uniforms = ["resolution", "camera_offset"];
-        const attributes = ["t_vector", "x_vector", "y_vector",  "offset", "color"];
+        const attributes = ["t_vector", "x_vector", "y_vector",  "offset", "color", "first", "last", "next"];
 
 
         uniforms.forEach(key => locations[key] = gl.getUniformLocation(program, key));
@@ -199,7 +230,7 @@ const vvgl = (function(canvas, options={}) {
 
 
         const uniforms = ["resolution", "camera_offset"];
-        const attributes = [ "offset", "color", "x1", "y1"];
+        const attributes = [ "offset", "color", "x1", "y1", "first", "last", "next"];
 
 
         uniforms.forEach(key => locations[key] = gl.getUniformLocation(program, key));
