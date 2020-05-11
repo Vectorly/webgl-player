@@ -726,8 +726,10 @@ const vvgl = (function(canvas, options={}) {
 
             let start = {x: 0, y: 0};
 
-            let end = this.key_last - this.key_first;
+            let end = this.key_last;
 
+            let ox = this.key_first.x;
+            let oy =this.key_first.y;
 
 
             for( let i = 0; i < curves.length; i++){
@@ -736,22 +738,20 @@ const vvgl = (function(canvas, options={}) {
 
                 if(i === curves.length - 1){
 
-
-                    if(curve.length ===0)curve = [start.x, start.x, end.x, end.x, start.y, start.y, end.y, end.y];
-                    else curve = [start.x,  curve[0], curve[1], end.x, start.y,curve[2], curve[3],end.y];
-
+                    if(curve.length ===0)curve = [start.x, start.x, end.x-ox, end.x-ox, start.y, start.y, end.y-oy, end.y-oy];
+                    else curve = [start.x,  curve[0], curve[1], end.x-ox, start.y,curve[2], curve[3],end.y-oy];
 
                 } else {
 
-                    if(curve.length ===2)curve = [start.x, start.x, curve[0], curve[0], start.y, start.y,curve[1], curve[1] ];
+                    if(curve.length ===2 )curve = [start.x, start.x, curve[0], curve[0], start.y, start.y,curve[1], curve[1] ];
                     else curve = [start.x,  curve[0], curve[1], curve[2], start.y,curve[3], curve[4], curve[5]];
 
                 }
 
-
                 start = {x: curve[3], y: curve[7]};
 
                 this.curves.push(curve);
+
 
 
             }
