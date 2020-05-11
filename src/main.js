@@ -127,7 +127,7 @@ const vvgl = (function(canvas, options={}) {
 
             "void main(void) {",
 
-            "if(last == next){",
+            "if(1 < 0){",
                 "vec2 point = (vec2(dot(t_vector, x_vector), dot(t_vector, y_vector)) + first + offset + camera_offset)*resolution - 1.0;",
                 "vColor = color/256.0;",
                 "gl_Position = vec4(point, 0, 1);",
@@ -168,25 +168,6 @@ const vvgl = (function(canvas, options={}) {
     }
 
 
-    /*
-
-
-      s = last - first
-      d = last2 - first
-
-      sp  = rot*s
-      dp = rot*dp
-
-      f = dot(point, s)
-      n = dot(point, sp)
-
-      (f*d + n*dp + first + offset + camera_offset)*resolution
-
-
-
-     */
-
-
     function initPolygonProgram() {
 
         let gVertexShader = createAndCompileShader(gl.VERTEX_SHADER, [
@@ -217,7 +198,7 @@ const vvgl = (function(canvas, options={}) {
 
 
                     "vec2 s = (last-first)/length(last-first);",
-                    "vec2 d = (next-first)/length(next-first);",
+                    "vec2 d = (next-first)/length(last-first);",
 
 
                     "vec2 sp  = vec2(-s.y, s.x);",
@@ -525,7 +506,7 @@ const vvgl = (function(canvas, options={}) {
 
                 if(shape.size > 0 && shape.contours[i].size > 0){
 
-                    gl.drawArrays(gl.TRIANGLE_FAN, shape.offset + shape.contours[i].offset,  shape.contours[i].size);
+                //    gl.drawArrays(gl.TRIANGLE_FAN, shape.offset + shape.contours[i].offset,  shape.contours[i].size);
                 }
 
 
@@ -722,6 +703,7 @@ const vvgl = (function(canvas, options={}) {
             let start = {x: 0, y: 0};
 
             this.key_last = new KeyPoint(JSON.parse(JSON.stringify(this.key_next.array())));
+          //  this.key_last = this.key_next;
 
             let end = this.key_last;
 
@@ -757,7 +739,17 @@ const vvgl = (function(canvas, options={}) {
         }
 
         update(curves){
+
+            console.log("This length:");
+            console.log(this.size);
+
+
+
             this.set(curves);
+
+            console.log("This length:");
+            console.log(this.size);
+
         }
 
 
@@ -961,11 +953,12 @@ const vvgl = (function(canvas, options={}) {
 
                             let id = edit[0];
                             let dx = edit[1];
-                            let dy = edit[2];
+                            let dy = -1*edit[2];
 
 
 
                             if(this.points[id]){
+
 
                                 this.points[id].x +=dx;
                                 this.points[id].y +=dy;
@@ -977,33 +970,40 @@ const vvgl = (function(canvas, options={}) {
 
 
 
-/*
+
                         for(const edit of segment_edits){
 
                             let id = edit[0];
                             let new_curves = edit[1];
 
+
+
                             if(this.segments[id]){
-                                this.segments[id].update(new_curves);
+
+                                console.log(this.segments[id]);
+
+
+                          //      this.segments[id].update(new_curves);
                             }
 
                         }
 
-                        for(const edit of contour_edits){
-
-                            let id = edit[0];
-                            let diffs= edit[1];
-
-                            let key_point_ids  = this.constructor.parse_diffs(this.contours[id].key_point_ids, diffs);
 
 
-                          //  this.contours[id] = this.new_contour(key_point_ids);
+            for(const edit of contour_edits){
+
+                let id = edit[0];
+                let diffs= edit[1];
+
+                let key_point_ids  = this.constructor.parse_diffs(this.contours[id].key_point_ids, diffs);
+
+
+              //  this.contours[id] = this.new_contour(key_point_ids);
 
 
 
-                        }
+            }
 
-*/
 
 
         }
