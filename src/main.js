@@ -511,7 +511,7 @@ const vvgl = (function(canvas, options={}) {
 
                 if(shape.size > 0 && shape.contours[i].size > 0){
 
-                    gl.drawArrays(gl.TRIANGLE_FAN, shape.offset + shape.contours[i].offset,  shape.contours[i].size);
+                    gl.drawArrays(gl.TRIANGLE_FAN, shape.offset + shape.contours[i].offset,  shape.contours[i].size+1);
                 }
 
 
@@ -986,6 +986,8 @@ const vvgl = (function(canvas, options={}) {
 
                         }
 
+                        let old_curves = 0;
+                        let new_curves_count = 0;
 
 
 
@@ -996,12 +998,29 @@ const vvgl = (function(canvas, options={}) {
 
 
 
+
                             if(this.segments[id]){
 
 
 
 
-                                if(id !== '20-21') this.segments[id].update(new_curves);
+
+
+                                if(id !== '20-21') {
+
+                                    old_curves += this.segments[id].curves.length;
+                                    new_curves_count += new_curves.length;
+
+                                 //   console.log(`For segment ${id}, old segment has ${this.segments[id].curves.length} curves, giving it ${new_curves.length} curve`);
+
+                                    this.segments[id].update(new_curves);
+
+
+                                }
+                                else{
+
+                                    this.segments[id].update(new_curves);
+                                }
 
 
 
@@ -1012,6 +1031,9 @@ const vvgl = (function(canvas, options={}) {
 
                         }
 
+
+                        console.log(`There were a total of ${old_curves} curves before`);
+                        console.log(`There are a total of ${new_curves_count} curves now`);
 
 
             for(const edit of contour_edits){
@@ -1025,8 +1047,8 @@ const vvgl = (function(canvas, options={}) {
                     let key_point_ids = this.contours[id].key_point_ids;
                   //  let key_point_ids  = this.constructor.parse_diffs(this.contours[id].key_point_ids, diffs);
 
-                    console.log(`New key point ids`);
-                    console.log(key_point_ids);
+               //     console.log(`New key point ids`);
+               //     console.log(key_point_ids);
 
 
 
@@ -1118,11 +1140,11 @@ const vvgl = (function(canvas, options={}) {
                 for(let j = 0; j < contour.segments.length; j++){
 
                     let segment = contour.segments[j];
-                    console.log(segment);
+                 //   console.log(segment);
 
                     for (let k = 0; k < segment.curves.length;k++){
 
-                        console.log(segment.curves[k]);
+                    //    console.log(segment.curves[k]);
 
                         data.set(segment.curves[k], offset);
                         data.set(segment.key_first.array(), offset+8);
