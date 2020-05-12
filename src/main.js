@@ -822,6 +822,9 @@ const vvgl = (function(canvas, options={}) {
             this.segments = segments;
             this.key_points = key_points;
 
+            console.log("Adding segments");
+            console.log(segments);
+
             for (const segment of segments){
                 segment.offset = this.size;
                 this.size +=segment.size;
@@ -890,12 +893,14 @@ const vvgl = (function(canvas, options={}) {
                     let first_point_id = point_id;
                     let next_point_id = first_point_id+1;
 
-                    if(j === contour.segments.length){
+                    if(j === contour.segments.length -1){
                         next_point_id = first_point_this_segment;
                     }
 
+                    let segment_id = `${first_point_id}-${next_point_id}`;
 
-                    this.segments[`${first_point_id}-${next_point_id}`] = contour.segments[j];
+
+                    this.segments[segment_id] = contour.segments[j];
 
                     point_id++;
                 }
@@ -1036,7 +1041,7 @@ const vvgl = (function(canvas, options={}) {
 
 
 
-                //    this.contours[id] = this.new_contour(key_point_ids);
+                    this.contours[id] = this.new_contour(key_point_ids);
 
                 }
 
