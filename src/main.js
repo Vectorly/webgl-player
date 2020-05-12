@@ -541,8 +541,8 @@ const vvgl = (function(canvas, options={}) {
             gl.vertexAttribPointer(bezierLocations["offset"], 4, gl.FLOAT, false, 84, 64 + 84*offset);
             gl.vertexAttribPointer(bezierLocations["color"], 4, gl.FLOAT, false, 84, 72 + 84*offset);
 
-            if(isWebGL2) gl.drawArraysInstanced(gl.TRIANGLE_FAN,  0, num_bezier_vertices, l);
-            else extensions.angle.drawArraysInstancedANGLE(gl.TRIANGLE_FAN,  0, num_bezier_vertices, l);
+           // if(isWebGL2) gl.drawArraysInstanced(gl.TRIANGLE_FAN,  0, num_bezier_vertices, l);
+        //    else extensions.angle.drawArraysInstancedANGLE(gl.TRIANGLE_FAN,  0, num_bezier_vertices, l);
 
         }
 
@@ -747,15 +747,7 @@ const vvgl = (function(canvas, options={}) {
         update(curves){
 
 
-            console.log("Previous curves this segment");
-            console.log(JSON.parse(JSON.stringify(this.curves)));
-
-
             this.set(curves);
-
-            console.log("new curves");
-            console.log(JSON.parse(JSON.stringify(this.curves)));
-
 
 
 
@@ -900,7 +892,8 @@ const vvgl = (function(canvas, options={}) {
                 contour.offset = offset;
 
                 // Global Contours
-                this.contours.push(contour);
+
+                if(i ===0) this.contours.push(contour);
 
                 offset+=contour.size;
 
@@ -1005,7 +998,13 @@ const vvgl = (function(canvas, options={}) {
 
                             if(this.segments[id]){
 
-                                this.segments[id].update(new_curves);
+
+
+
+                                if(id !== '20-21') this.segments[id].update(new_curves);
+
+
+
                             } else{
 
                                 console.log(`Wanted to update id ${id} but it doesn't exist`);
@@ -1103,6 +1102,7 @@ const vvgl = (function(canvas, options={}) {
         getBufferData(){
 
 
+            console.log("Getting buffer data");
             const data = new Float32Array(this.size*21);
             const shape = this;
 
@@ -1118,9 +1118,11 @@ const vvgl = (function(canvas, options={}) {
                 for(let j = 0; j < contour.segments.length; j++){
 
                     let segment = contour.segments[j];
-
+                    console.log(segment);
 
                     for (let k = 0; k < segment.curves.length;k++){
+
+                        console.log(segment.curves[k]);
 
                         data.set(segment.curves[k], offset);
                         data.set(segment.key_first.array(), offset+8);
@@ -1198,7 +1200,7 @@ const vvgl = (function(canvas, options={}) {
             let shape = this.shapes[shape_index];
 
             shape.update(update);
-            this.buffer_data.fill(0);
+           // this.buffer_data.fill(0);
             this.buffer_data.set(shape.getBufferData(), shape.offset*21);
         }
 
