@@ -746,24 +746,7 @@ const vvgl = (function(canvas, options={}) {
 
         update(curves){
 
-            console.log("before:");
-            console.log(this.size);
-
-
-            console.log(JSON.parse(JSON.stringify(this.curves)));
-
-
-
             this.set(curves);
-
-            this.size = 2;
-
-            console.log("after:");
-
-
-            console.log(JSON.parse(JSON.stringify(this.curves)));
-
-            console.log(this);
 
 
         }
@@ -1013,8 +996,14 @@ const vvgl = (function(canvas, options={}) {
                 let id = edit[0];
                 let diffs= edit[1];
 
-                let key_point_ids  = this.constructor.parse_diffs(this.contours[id].key_point_ids, diffs);
 
+                if(id ===0){
+                    let key_point_ids  = this.constructor.parse_diffs(this.contours[id].key_point_ids, diffs);
+
+                    console.log(`New key point ids`);
+                    console.log(key_point_ids);
+
+                }
 
               //  this.contours[id] = this.new_contour(key_point_ids);
 
@@ -1038,15 +1027,16 @@ const vvgl = (function(canvas, options={}) {
 
                 if(code===0){
 
-                    b.splice(diff[1], diff[1] + diff[2]);
+                    b.splice(diff[1], diff[2]);
 
                 } else if(code ===1){
 
-                    b = [b.slice(0,diff[1]), diff[2], b.slice(diff[3])].flat();
+                    b = [b.slice(0,diff[1]), diff[2], b.slice(diff[1])].flat();
 
                 } else if(code ===2){
 
-                    b.slice(diff[1], diff[1]+diff[2], diff[3]);
+                    b.splice(diff[1], diff[2], diff[3]);
+                    b = b.flat();
                 }
 
 
