@@ -679,6 +679,10 @@ const vvgl = (function(canvas, options={}) {
 
         }
 
+        dist(keypoint){
+            return Math.sqrt( Math.pow(keypoint.x - this.x, 2) +  Math.pow(keypoint.y - this.y, 2));
+        }
+
         array(){
 
             return [this.x, this.y];
@@ -711,7 +715,7 @@ const vvgl = (function(canvas, options={}) {
             this.key_last = new KeyPoint(JSON.parse(JSON.stringify(this.key_next.array())));
             this.key_first = new KeyPoint(JSON.parse(JSON.stringify(this.key_previous.array())));
 
-            if(this.key_last.x === this.key_first.x && this.key_last.y === this.key_first.y){
+            if(this.key_last.dist(this.key_first) < 1){
                 this.size =0;
                 return null;
             }
@@ -1032,6 +1036,8 @@ const vvgl = (function(canvas, options={}) {
             }
 
 
+
+
             let contour_offset = 0;
 
             for (const contour of this.contours){
@@ -1039,6 +1045,7 @@ const vvgl = (function(canvas, options={}) {
                 contour.update();
                 contour_offset += contour.size;
             }
+
 
 
         }
@@ -1049,13 +1056,12 @@ const vvgl = (function(canvas, options={}) {
             let b = JSON.parse(JSON.stringify(array));
 
 
+
             for (const diff of diffs){
 
 
+
                 const code = diff[0];
-
-                console.log(diff);
-
 
                 if(code===0){
 
@@ -1074,6 +1080,9 @@ const vvgl = (function(canvas, options={}) {
 
 
             }
+
+
+
 
             return b;
 
@@ -1107,8 +1116,6 @@ const vvgl = (function(canvas, options={}) {
 
         getBufferData(){
 
-
-            console.log("Getting buffer data");
             const data = new Float32Array(this.size*21);
             const shape = this;
 
