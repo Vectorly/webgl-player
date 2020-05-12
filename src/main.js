@@ -746,7 +746,17 @@ const vvgl = (function(canvas, options={}) {
 
         update(curves){
 
+
+            console.log("Previous curves this segment");
+            console.log(JSON.parse(JSON.stringify(this.curves)));
+
+
             this.set(curves);
+
+            console.log("new curves");
+            console.log(JSON.parse(JSON.stringify(this.curves)));
+
+
 
 
         }
@@ -995,7 +1005,7 @@ const vvgl = (function(canvas, options={}) {
 
                             if(this.segments[id]){
 
-                           //     this.segments[id].update(new_curves);
+                                this.segments[id].update(new_curves);
                             } else{
 
                                 console.log(`Wanted to update id ${id} but it doesn't exist`);
