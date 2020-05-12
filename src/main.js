@@ -852,6 +852,8 @@ const vvgl = (function(canvas, options={}) {
 
             let offset= 0;
 
+            let q = 0;
+
 
             for (let i=0; i < data.contours.length; i++){
 
@@ -870,11 +872,12 @@ const vvgl = (function(canvas, options={}) {
 
                 // Global Segments
                 for(let j = 0; j < contour.segments.length; j++){
-                    let first_point_id = this.points.length + j;
+                    let first_point_id = q + j;
                     let next_point_id = (first_point_id+1)%contour.segments.length;
                     this.segments[`${first_point_id}-${next_point_id}`] = contour.segments[j];
                 }
 
+                q+= this.points.length;
 
                 contour.offset = offset;
 
