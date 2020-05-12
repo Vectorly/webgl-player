@@ -511,7 +511,7 @@ const vvgl = (function(canvas, options={}) {
 
                 if(shape.size > 0 && shape.contours[i].size > 0){
 
-                    gl.drawArrays(gl.TRIANGLE_FAN, shape.offset + shape.contours[i].offset,  shape.contours[i].size+1);
+                    gl.drawArrays(gl.TRIANGLE_FAN, shape.offset + shape.contours[i].offset,  shape.contours[i].size);
                 }
 
 
@@ -806,6 +806,15 @@ const vvgl = (function(canvas, options={}) {
 
         }
 
+
+        update(){
+
+            this.size = 0;
+            for (const segment of this.segments){
+                this.size += segment.size;
+            }
+        }
+
         add(key_points, segments){
 
             this.size = 0;
@@ -1001,28 +1010,7 @@ const vvgl = (function(canvas, options={}) {
 
                             if(this.segments[id]){
 
-
-
-
-
-
-                                if(id !== '20-21') {
-
-                                    old_curves += this.segments[id].curves.length;
-                                    new_curves_count += new_curves.length;
-
-                                 //   console.log(`For segment ${id}, old segment has ${this.segments[id].curves.length} curves, giving it ${new_curves.length} curve`);
-
-                                    this.segments[id].update(new_curves);
-
-
-                                }
-                                else{
-
-                                    this.segments[id].update(new_curves);
-                                }
-
-
+                                this.segments[id].update(new_curves);
 
                             } else{
 
@@ -1030,6 +1018,13 @@ const vvgl = (function(canvas, options={}) {
                             }
 
                         }
+
+                        for (const contour of this.contours){
+                            contour.update();
+                        }
+
+
+
 
 
                         console.log(`There were a total of ${old_curves} curves before`);
