@@ -902,7 +902,7 @@ const vvgl = (function(canvas, options={}) {
 
                 // Global Contours
 
-                if(i ===0) this.contours.push(contour);
+                this.contours.push(contour);
 
                 offset+=contour.size;
 
@@ -995,23 +995,14 @@ const vvgl = (function(canvas, options={}) {
 
                         }
 
-                        let old_curves = 0;
-                        let new_curves_count = 0;
-
-
 
                         for(const edit of segment_edits){
 
                             let id = edit[0];
                             let new_curves = edit[1];
 
-
-
-
                             if(this.segments[id]){
-
                                 this.segments[id].update(new_curves);
-
                             } else{
 
                                 console.log(`Wanted to update id ${id} but it doesn't exist`);
@@ -1023,12 +1014,6 @@ const vvgl = (function(canvas, options={}) {
                             contour.update();
                         }
 
-
-
-
-
-                        console.log(`There were a total of ${old_curves} curves before`);
-                        console.log(`There are a total of ${new_curves_count} curves now`);
 
 
             for(const edit of contour_edits){
