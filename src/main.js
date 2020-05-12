@@ -842,7 +842,7 @@ const vvgl = (function(canvas, options={}) {
 
 
             this.xy = data.xy;
-            this.size = data.max_curves;
+            this.size = data.max_curves*2;
             this.id = data.rid;
             this.color = data.color;
             this.points = [];
@@ -988,6 +988,9 @@ const vvgl = (function(canvas, options={}) {
                             if(this.segments[id]){
 
                                 this.segments[id].update(new_curves);
+                            } else{
+
+                                console.log(`Wanted to update id ${id} but it doesn't exist`);
                             }
 
                         }
@@ -1010,7 +1013,7 @@ const vvgl = (function(canvas, options={}) {
 
 
 
-                    this.contours[id] = this.new_contour(key_point_ids);
+                //    this.contours[id] = this.new_contour(key_point_ids);
 
                 }
 
