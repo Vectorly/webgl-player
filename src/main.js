@@ -648,7 +648,7 @@ const vvgl = (function(canvas, options={}) {
 
         render();
 
-        if(frame < 160) return window.requestAnimationFrame(step);
+        if(frame < update_manager.duration) return window.requestAnimationFrame(step);
         else{
             console.log(`Done`);
         }
@@ -926,108 +926,97 @@ const vvgl = (function(canvas, options={}) {
 
 
 
-                                    let additions = update[0];
+            let additions = update[0];
 
 
-                                    let key_point_additions = additions[0];
-                                    let segment_additions = additions[1];
-                                    let contour_additions = additions[2];
+            let key_point_additions = additions[0];
+            let segment_additions = additions[1];
+            let contour_additions = additions[2];
 
 
-                                    for(const add of key_point_additions){
-
-                                        if(frame === 160){
-                                            console.log(`Adding point ${this.points.length}`);
-                                        }
-                                        this.points.push(new KeyPoint(add));
+            for(const add of key_point_additions){
+                this.points.push(new KeyPoint(add));
+            }
 
 
-                                    }
+            for(const add of segment_additions){
 
+                let id = add[0];
+                let curves = add[1];
 
-                                    for(const add of segment_additions){
+                let point_ids = id.split('-');
+                let first_point = this.points[Number(point_ids[0])];
+                let next_point = this.points[Number(point_ids[1])];
 
-                                        let id = add[0];
-                                        let curves = add[1];
+                this.segments[id] = new Segment(curves, first_point, next_point);
 
-
-
-
-                                        let point_ids = id.split('-');
-                                        let first_point = this.points[Number(point_ids[0])];
-                                        let next_point = this.points[Number(point_ids[1])];
-
-                                        this.segments[id] = new Segment(curves, first_point, next_point);
-
-                                      //  console.log(`Adding curves for segment ${id}`);
-                                      //  console.log(this.segments[id]);
-                                    }
-
-
-
-/*
-
-                                    for(const add of contour_additions){
-
-                                        let id = add[0];
-
-                                        if(add[1] ===0) this.contours[id].hide();
-                                        else{
-
-                                            let key_point_ids = add[1];
-                                            this.contours.push(this.new_contour(key_point_ids));
-
-
-                                        }
-                                    }
-
-
-
-*/
-
-                        let edits = update[1];
-
-
-
-                        let key_point_edits = edits[0];
-                        let segment_edits = edits[1];
-                        let contour_edits = edits[2];
+            }
 
 
 
 
-                        for(const edit of key_point_edits){
 
-                            let id = edit[0];
-                            let dx = edit[1];
-                            let dy = edit[2];
+            for(const add of contour_additions){
 
+                let id = add[0];
 
-                            if(this.points[id]){
+                if(add[1] ===0) this.contours[id].hide();
+                else{
 
-
-                                this.points[id].x +=dx;
-                                this.points[id].y +=dy;
+                    let key_point_ids = add[1];
+                    this.contours.push(this.new_contour(key_point_ids));
 
 
-                            }
+                }
+            }
 
-                        }
 
 
-                        for(const edit of segment_edits){
 
-                            let id = edit[0];
-                            let new_curves = edit[1];
 
-                            if(this.segments[id]){
-                                this.segments[id].update(new_curves);
-                            } else{
+            let edits = update[1];
 
-                                console.log(`Wanted to update id ${id} but it doesn't exist`);
-                            }
 
-                        }
+
+            let key_point_edits = edits[0];
+            let segment_edits = edits[1];
+            let contour_edits = edits[2];
+
+
+
+
+            for(const edit of key_point_edits){
+
+                let id = edit[0];
+                let dx = edit[1];
+                let dy = edit[2];
+
+
+                if(this.points[id]){
+
+
+                    this.points[id].x +=dx;
+                    this.points[id].y +=dy;
+
+
+                }
+
+            }
+
+
+            for(const edit of segment_edits){
+
+                let id = edit[0];
+                let new_curves = edit[1];
+
+                if(this.segments[id]){
+                    this.segments[id].update(new_curves);
+                } else{
+
+                    console.log(`Wanted to update id ${id} but it doesn't exist`);
+                }
+
+            }
 
 
 
@@ -1036,25 +1025,9 @@ const vvgl = (function(canvas, options={}) {
                 let id = edit[0];
                 let diffs= edit[1];
 
+                let key_point_ids  = this.constructor.parse_diffs(this.contours[id].key_point_ids, diffs);
 
-                if(id ===0){
-
-                  //  let key_point_ids = this.contours[id].key_point_ids;
-
-                    let key_point_ids  = this.constructor.parse_diffs(this.contours[id].key_point_ids, diffs);
-
-                    console.log(`New key point ids`);
-                    console.log(key_point_ids);
-
-
-
-                    this.contours[id] = this.new_contour(key_point_ids);
-
-                }
-
-              //  this.contours[id] = this.new_contour(key_point_ids);
-
-
+                this.contours[id] = this.new_contour(key_point_ids);
 
             }
 
@@ -1068,39 +1041,12 @@ const vvgl = (function(canvas, options={}) {
             }
 
 
-
-
-
-            if(frame === 160){
-
-                console.log("Points 12, 116 and 15");
-                console.log(this.points[12]);
-                console.log(this.points[116]);
-                console.log(this.points[15]);
-
-
-                console.log("Segment 12-116 and 116-15");
-                console.log(this.segments['12-116']);
-                console.log(this.segments['116-15']);
-
-            }
-
         }
 
         static parse_diffs(array, diffs){
 
 
             let b = JSON.parse(JSON.stringify(array));
-
-            if(frame === 160){
-
-                console.log(`Diffs length: ${diffs.length}`);
-                diffs = diffs.slice(0,2);
-
-
-
-
-            }
 
 
             for (const diff of diffs){
