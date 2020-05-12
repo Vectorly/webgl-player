@@ -648,7 +648,7 @@ const vvgl = (function(canvas, options={}) {
 
         render();
 
-        if(frame < 155) return window.requestAnimationFrame(step);
+        if(frame < 160) return window.requestAnimationFrame(step);
         else{
             console.log(`Done`);
         }
@@ -710,6 +710,11 @@ const vvgl = (function(canvas, options={}) {
 
             this.key_last = new KeyPoint(JSON.parse(JSON.stringify(this.key_next.array())));
             this.key_first = new KeyPoint(JSON.parse(JSON.stringify(this.key_previous.array())));
+
+            if(this.key_last.x === this.key_first.x && this.key_last.y === this.key_first.y){
+                this.size =0;
+                return null;
+            }
 
             let end = this.key_last;
 
@@ -853,7 +858,7 @@ const vvgl = (function(canvas, options={}) {
 
 
             this.xy = data.xy;
-            this.size = data.max_curves*2;
+            this.size = data.max_curves*3;
             this.id = data.rid;
             this.color = data.color;
             this.points = [];
@@ -930,7 +935,13 @@ const vvgl = (function(canvas, options={}) {
 
 
                                     for(const add of key_point_additions){
-                                        this.points.push(new KeyPoint(add))
+
+                                        if(frame === 160){
+                                            console.log(`Adding point ${this.points.length}`);
+                                        }
+                                        this.points.push(new KeyPoint(add));
+
+
                                     }
 
 
@@ -948,8 +959,8 @@ const vvgl = (function(canvas, options={}) {
 
                                         this.segments[id] = new Segment(curves, first_point, next_point);
 
-                                        console.log(`Adding curves`);
-                                        console.log(this.segments[id]);
+                                      //  console.log(`Adding curves for segment ${id}`);
+                                      //  console.log(this.segments[id]);
                                     }
 
 
@@ -1018,14 +1029,6 @@ const vvgl = (function(canvas, options={}) {
 
                         }
 
-                        let contour_offset = 0;
-
-                        for (const contour of this.contours){
-                            contour.offset = contour_offset;
-                            contour.update();
-                            contour_offset += contour.size;
-                        }
-
 
 
             for(const edit of contour_edits){
@@ -1040,8 +1043,8 @@ const vvgl = (function(canvas, options={}) {
 
                     let key_point_ids  = this.constructor.parse_diffs(this.contours[id].key_point_ids, diffs);
 
-               //     console.log(`New key point ids`);
-               //     console.log(key_point_ids);
+                    console.log(`New key point ids`);
+                    console.log(key_point_ids);
 
 
 
@@ -1056,6 +1059,31 @@ const vvgl = (function(canvas, options={}) {
             }
 
 
+            let contour_offset = 0;
+
+            for (const contour of this.contours){
+                contour.offset = contour_offset;
+                contour.update();
+                contour_offset += contour.size;
+            }
+
+
+
+
+
+            if(frame === 160){
+
+                console.log("Points 12, 116 and 15");
+                console.log(this.points[12]);
+                console.log(this.points[116]);
+                console.log(this.points[15]);
+
+
+                console.log("Segment 12-116 and 116-15");
+                console.log(this.segments['12-116']);
+                console.log(this.segments['116-15']);
+
+            }
 
         }
 
@@ -1064,10 +1092,24 @@ const vvgl = (function(canvas, options={}) {
 
             let b = JSON.parse(JSON.stringify(array));
 
+            if(frame === 160){
+
+                console.log(`Diffs length: ${diffs.length}`);
+                diffs = diffs.slice(0,2);
+
+
+
+
+            }
+
 
             for (const diff of diffs){
 
+
                 const code = diff[0];
+
+                console.log(diff);
+
 
                 if(code===0){
 
