@@ -648,7 +648,7 @@ const vvgl = (function(canvas, options={}) {
 
         render();
 
-        if(frame < update_manager.duration) return window.requestAnimationFrame(step);
+        if(frame < 155) return window.requestAnimationFrame(step);
         else{
             console.log(`Done`);
         }
@@ -764,7 +764,7 @@ const vvgl = (function(canvas, options={}) {
 
 
             if(data) this.init(data);
-            else this.add(segments, keypoints);
+            else this.add(keypoints, segments);
 
         }
 
@@ -797,7 +797,7 @@ const vvgl = (function(canvas, options={}) {
                 size +=segment.size;
             }
 
-            console.log(this.segments);
+
 
             this.size = size;
 
@@ -998,10 +998,16 @@ const vvgl = (function(canvas, options={}) {
 
 
                 if(id ===0){
-                    let key_point_ids  = this.constructor.parse_diffs(this.contours[id].key_point_ids, diffs);
+
+                    let key_point_ids = this.contours[id].key_point_ids;
+                  //  let key_point_ids  = this.constructor.parse_diffs(this.contours[id].key_point_ids, diffs);
 
                     console.log(`New key point ids`);
                     console.log(key_point_ids);
+
+
+
+                    this.contours[id] = this.new_contour(key_point_ids);
 
                 }
 
