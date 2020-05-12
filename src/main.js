@@ -939,11 +939,17 @@ const vvgl = (function(canvas, options={}) {
                                         let id = add[0];
                                         let curves = add[1];
 
+
+
+
                                         let point_ids = id.split('-');
                                         let first_point = this.points[Number(point_ids[0])];
                                         let next_point = this.points[Number(point_ids[1])];
 
                                         this.segments[id] = new Segment(curves, first_point, next_point);
+
+                                        console.log(`Adding curves`);
+                                        console.log(this.segments[id]);
                                     }
 
 
