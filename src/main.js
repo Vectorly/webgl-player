@@ -866,6 +866,8 @@ const vvgl = (function(canvas, options={}) {
             let point_id=0;
 
 
+
+
             for (let i=0; i < data.contours.length; i++){
 
 
@@ -899,8 +901,6 @@ const vvgl = (function(canvas, options={}) {
                 }
 
                 contour.offset = offset;
-
-                // Global Contours
 
                 this.contours.push(contour);
 
@@ -1010,8 +1010,12 @@ const vvgl = (function(canvas, options={}) {
 
                         }
 
+                        let contour_offset = 0;
+
                         for (const contour of this.contours){
+                            contour.offset = contour_offset;
                             contour.update();
+                            contour_offset += contour.size;
                         }
 
 
