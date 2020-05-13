@@ -648,9 +648,8 @@ const vvgl = (function(canvas, options={}) {
 
         render();
 
-        //if(frame < 15) return window.requestAnimationFrame(step);
 
-        if(frame < update_manager.duration) return setTimeout(step, 50);
+        if(frame < update_manager.duration) return window.requestAnimationFrame(step);
         else{
             console.log(`Done`);
 
@@ -1328,13 +1327,7 @@ const vvgl = (function(canvas, options={}) {
 
             for (const update of updates){
 
-               // if(update[0] !==50) {
-                    this.shape_list.update(update[0], update[1]);
-           //     }
-            //    else{
-                   // console.log(`Skipping update for region 50`);
-             //   }
-
+                this.shape_list.update(update[0], update[1]);
 
             }
 
