@@ -653,6 +653,9 @@ const vvgl = (function(canvas, options={}) {
         if(frame < update_manager.duration) return setTimeout(step, 50);
         else{
             console.log(`Done`);
+
+            console.log(`Errors`);
+            console.log(shape_list.errors);
         }
     }
 
@@ -1178,6 +1181,8 @@ const vvgl = (function(canvas, options={}) {
             this.shapes = [];
             this.index = {};
 
+            this.errors = {};
+
             let size = 0;
 
             for (let i=0; i < shapes.length; i++){
@@ -1224,17 +1229,39 @@ const vvgl = (function(canvas, options={}) {
 
         update(shape_index, update){
 
-            let shape = this.index[shape_index];
+
 
 
             try{
+                let shape = this.index[shape_index];
+
+
+                if(frame ===87){
+
+                    console.log(`Update for shape ${shape_index} on frame ${frame} `);
+                    console.log(update);
+
+                    /*
+                        with shape 50, it's 1,2,0, 5,5,1
+
+                     */
+                }
+
+
                 shape.update(update);
+
+
                 this.buffer_data.fill(0,shape.offset*21, (shape.offset + shape.size)*21);
                 this.buffer_data.set(shape.getBufferData(), shape.offset*21);
             } catch (e){
 
 
-                console.warn(`Shape ${shape.id} had an error updating`);
+                console.warn(`Shape ${shape_index} had an error updating on  frame ${frame}`);
+
+
+                if(!this.errors[shape_index]) this.errors[shape_index] = 1;
+                else  this.errors[shape_index] +=1;
+
                 console.warn(e);
             }
 
@@ -1275,12 +1302,12 @@ const vvgl = (function(canvas, options={}) {
 
             this.duration = num_frames;
 
-            let n = 0;
 
-            for (const update of relative_updates){
-                 if(typeof update === "number") n+=update;
-                 else  this.updates[n] = update;
+            for (let n =0; n < num_frames; n++ ){
+                this.updates[n] =relative_updates[n];
             }
+
+
 
             this.shape_list = shape_list;
 
@@ -1298,9 +1325,15 @@ const vvgl = (function(canvas, options={}) {
             if(!updates) return null;
 
 
+
             for (const update of updates){
 
-                this.shape_list.update(update[0], update[1]);
+               // if(update[0] !==50) {
+                    this.shape_list.update(update[0], update[1]);
+           //     }
+            //    else{
+                   // console.log(`Skipping update for region 50`);
+             //   }
 
 
             }
