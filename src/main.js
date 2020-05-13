@@ -956,16 +956,7 @@ const vvgl = (function(canvas, options={}) {
                 let first_point = this.points[Number(point_ids[0])];
                 let next_point = this.points[Number(point_ids[1])];
 
-
-                if(!next_point || ! first_point){
-                    console.log(`Shape ${this.id} has no next point`);
-                    console.log(id);
-
-                    console.log(this.points);
-                } else{
-
-                    this.segments[id] = new Segment(curves, first_point, next_point);
-                }
+                this.segments[id] = new Segment(curves, first_point, next_point);
 
             }
 
@@ -1030,7 +1021,7 @@ const vvgl = (function(canvas, options={}) {
                     this.segments[id].update(new_curves);
                 } else{
 
-                    console.log(`Wanted to update id ${id} but it doesn't exist`);
+                    console.log(`Wanted to update segment id ${id} of shape ${this.id} but it doesn't exist`);
                 }
 
             }
@@ -1235,8 +1226,6 @@ const vvgl = (function(canvas, options={}) {
 
             let shape = this.index[shape_index];
 
-            console.log(`Trying to update shape ${shape_index}`);
-
 
             try{
                 shape.update(update);
@@ -1245,7 +1234,7 @@ const vvgl = (function(canvas, options={}) {
             } catch (e){
 
 
-                console.warn(`Shape ${shape.rid} had an error updating`);
+                console.warn(`Shape ${shape.id} had an error updating`);
                 console.warn(e);
             }
 
