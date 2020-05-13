@@ -648,7 +648,9 @@ const vvgl = (function(canvas, options={}) {
 
         render();
 
-        if(frame < update_manager.duration) return window.requestAnimationFrame(step);
+        //if(frame < 15) return window.requestAnimationFrame(step);
+
+        if(frame < update_manager.duration) return setTimeout(step, 50);
         else{
             console.log(`Done`);
         }
@@ -711,6 +713,8 @@ const vvgl = (function(canvas, options={}) {
             this.size = curves.length;
 
             let start = {x: 0, y: 0};
+
+
 
             this.key_last = new KeyPoint(JSON.parse(JSON.stringify(this.key_next.array())));
             this.key_first = new KeyPoint(JSON.parse(JSON.stringify(this.key_previous.array())));
@@ -952,7 +956,16 @@ const vvgl = (function(canvas, options={}) {
                 let first_point = this.points[Number(point_ids[0])];
                 let next_point = this.points[Number(point_ids[1])];
 
-                this.segments[id] = new Segment(curves, first_point, next_point);
+
+                if(!next_point || ! first_point){
+                    console.log(`Shape ${this.id} has no next point`);
+                    console.log(id);
+
+                    console.log(this.points);
+                } else{
+
+                    this.segments[id] = new Segment(curves, first_point, next_point);
+                }
 
             }
 
@@ -1119,6 +1132,8 @@ const vvgl = (function(canvas, options={}) {
             const data = new Float32Array(this.size*21);
             const shape = this;
 
+        //    console.log(`This shape size: ${this.size}`);
+
             let offset = 0;
 
 
@@ -1136,6 +1151,7 @@ const vvgl = (function(canvas, options={}) {
                     for (let k = 0; k < segment.curves.length;k++){
 
                     //    console.log(segment.curves[k]);
+                 //       console.log(`Current offset: ${offset/21}`);
 
                         data.set(segment.curves[k], offset);
                         data.set(segment.key_first.array(), offset+8);
@@ -1169,17 +1185,24 @@ const vvgl = (function(canvas, options={}) {
 
 
             this.shapes = [];
+            this.index = {};
 
             let size = 0;
 
             for (let i=0; i < shapes.length; i++){
+
 
                 let shape =  new Shape(shapes[i]);
                 shape.offset  = size;
 
                 size += shape.size;
 
+
+                this.index[shape.id] = shape;
                 this.shapes.push(shape);
+
+
+
 
             }
 
@@ -1210,11 +1233,23 @@ const vvgl = (function(canvas, options={}) {
 
         update(shape_index, update){
 
-            let shape = this.shapes[shape_index];
+            let shape = this.index[shape_index];
 
-            shape.update(update);
-           // this.buffer_data.fill(0);
-            this.buffer_data.set(shape.getBufferData(), shape.offset*21);
+            console.log(`Trying to update shape ${shape_index}`);
+
+
+            try{
+                shape.update(update);
+                this.buffer_data.fill(0,shape.offset*21, (shape.offset + shape.size)*21);
+                this.buffer_data.set(shape.getBufferData(), shape.offset*21);
+            } catch (e){
+
+
+                console.warn(`Shape ${shape.rid} had an error updating`);
+                console.warn(e);
+            }
+
+
         }
 
     }
