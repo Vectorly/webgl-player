@@ -21,6 +21,11 @@ const vvgl = (function(canvas, options={}) {
     const {polygonLocations, polygonAttributes} = getPolygonVariableLocations(polygonProgram);
 
 
+    let shape_list;
+    let bucket_manager;
+    let update_manager;
+
+
     const t_array = [];
 
 
@@ -60,7 +65,9 @@ const vvgl = (function(canvas, options={}) {
 
     function getContext(canvas) {
 
-        let context = document.getElementById(canvas).getContext("webgl2", {stencil:true});
+     //   let context = document.getElementById(canvas).getContext("webgl2", {stencil:true});
+
+        let context;
 
         let isWebGL2 = (typeof  context !== "undefined");
 
@@ -229,6 +236,19 @@ const vvgl = (function(canvas, options={}) {
     }
 
 
+    function setBufferData() {
+
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, bezier_buffer);
+        gl.bufferData(gl.ARRAY_BUFFER, shape_list.buffer_data, gl.DYNAMIC_DRAW);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, t_buffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(t_array), gl.STATIC_DRAW);
+
+
+    }
+
+
 
     function prepareCanvas() {
 
@@ -247,172 +267,266 @@ const vvgl = (function(canvas, options={}) {
     }
 
 
-    function setBezierData(json) {
 
+    class Contour {
 
-        const bezier_buffer_data = new Float32Array(json.num_bezier_curves*13);
+        constructor(data){
 
-        const foreground_shapes = json.foreground_shapes;
-        const background_shapes = json.background_shapes;
-
-        let offset = 0;
-        let curves = 0;
-
-        let background_offset = 0;
-
-
-        const shapes = [...foreground_shapes, ...background_shapes];
-
-        shapes[shapes.length-1].contour_lengths[0] = shapes[shapes.length-1].contour_lengths[0]-1;
-
-        const offsets = new Array(shapes.length);
-
-
-        for(let i =0; i <shapes.length; i++){
-
-            let shape = shapes[i];
-
-            shapes[i].offset = offset;
-
-            offsets[i] = offset;
-
-            if(!shape.foreground && !background_offset) background_offset = offset;
-
-
-            for(let j = 0; j < shape.bezier_curves.length; j++){
-                let curve = shape.bezier_curves[j];
-
-                let idx = offset*13 + j*13;
-
-                if(!shape.hidden) bezier_buffer_data.set(curve, idx);
-
-                bezier_buffer_data.set(shape.data, idx+8);
-                curves++;
-
-            }
-
-            offset += shape.max_curves;
+            this.size = 0;
+            this.curves = [0];
 
         }
 
 
-        let background_index_offset = 0;
 
-        let shape_index_offset = 0;
-
-        for(let i =0; i <shapes.length; i++){
-
-
-            if(!isWebGL2) shapes[i].contour_offsets = new Array(shapes[i].contour_lengths.length);
-
-            let contour_offset= shapes[i].offset;
-
-            let index_offset = 0;
-
-            shapes[i].index_offset = shape_index_offset;
-
-            if(!shapes[i].foreground && !background_offset) background_index_offset = shape_index_offset;
-
-            for(let j = 0; j < shapes[i].contour_lengths.length; j++){
-
-                if(isWebGL2) array_index.set(bezier_index.slice(contour_offset,  contour_offset + shapes[i].contour_lengths[j]), index_offset + shape_index_offset);
-                else shapes[i].contour_offsets[j] = contour_offset;
-
-                index_offset += shapes[i].contour_lengths[j] + 1;
-
-                contour_offset += shapes[i].contour_lengths[j];
-            }
-
-            shape_index_offset +=  shapes[i].max_curves + shapes[i].max_contours;
+        update(){
 
         }
 
-
-        data.foreground_index_length = background_index_offset;
-
-        data.offsets = offsets;
-
-        data.bezier_buffer = bezier_buffer_data;
-
-        data.foreground_length = background_offset*13;
-
-
-        gl.bindBuffer(gl.ARRAY_BUFFER, t_buffer);
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(t_array), gl.STATIC_DRAW);
-
-
-        gl.bindBuffer(gl.ARRAY_BUFFER, bezier_buffer);
-        gl.bufferData(gl.ARRAY_BUFFER, bezier_buffer_data, gl.DYNAMIC_DRAW);
-
-
-        polygonPointers();
-
-        polygonAttributes.forEach(function (attribute) {
-            gl.enableVertexAttribArray(polygonLocations[attribute]);
-        });
-
-
-        if(isWebGL2){
-            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, element_array_index_buffer);
-            gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, array_index, gl.STATIC_DRAW);
-        }
-
-
-        bezierPointers();
-
-        bezierAttributes.forEach(function (attribute) {
-            gl.enableVertexAttribArray(bezierLocations[attribute]);
-        });
-
-
-        const num_buckets = 70;
-
-        data.num_buckets = num_buckets;
-
-        const shapes_per_bucket = Math.ceil(shapes.length / num_buckets);
-
-        const bucket_lengths = new Array(num_buckets);
-        const bucket_index_lengths = new Array(num_buckets);
-
-        const buckets = new Array(num_buckets);
-
-        for(let i = 0; i < num_buckets; i++){
-
-            let shapes_in_this_bucket;
-
-            if (i === num_buckets- 1){
-                shapes_in_this_bucket = shapes.slice(i*shapes_per_bucket);
-
-            } else{
-
-                shapes_in_this_bucket = shapes.slice(i*shapes_per_bucket, (i+1)*shapes_per_bucket);
-            }
-
-
-            let curves_this_shape = 0;
-            let bucket_indices = 0;
-
-            shapes_in_this_bucket.forEach(function (shape) {
-
-                curves_this_shape += shape.max_curves;
-                bucket_indices += shape.max_curves + shape.max_contours;
-
-            });
-
-            bucket_index_lengths[i] = bucket_indices;
-
-            bucket_lengths[i] = curves_this_shape;
-
-            buckets[i] = shapes_in_this_bucket;
-
-        }
-
-        data.bucket_lengths = bucket_lengths;
-        data.bucket_index_lengths = bucket_index_lengths;
-        data.buckets = buckets;
 
 
     }
+
+
+
+
+
+
+    class Shape {
+
+        constructor(data){
+
+
+            this.xy = data.xy;
+            this.id = data.rid;
+            this.color = data.color;
+
+            this.contours = [];
+
+            let offset= 0;
+
+
+
+            for (let i=0; i < data.contours.length; i++){
+
+                let contour = new Contour(data.contours[i]);
+
+                contour.offset = offset;
+
+                this.contours.push(contour);
+
+                offset+=contour.size;
+
+
+            }
+
+
+
+
+
+        }
+
+        update(update){
+
+
+
+
+        }
+
+
+
+        getBufferData(){
+
+            const data = new Float32Array(this.size*21);
+            const shape = this;
+
+            let offset = 0;
+
+
+            for (let i = 0; i < this.contours.length; i++){
+
+                let contour = this.contours[i];
+
+
+            }
+
+
+            return data;
+        }
+
+
+
+    }
+
+
+
+    class ShapeList {
+
+        constructor(shapes){
+
+
+            this.shapes = [];
+            this.index = {};
+
+            this.errors = {};
+
+            let size = 0;
+
+            for (let i=0; i < shapes.length; i++){
+
+
+
+
+
+                let shape =  new Shape(shapes[i]);
+                shape.offset  = size;
+
+                size += shape.size;
+
+
+                this.index[shape.id] = shape;
+                this.shapes.push(shape);
+
+
+
+
+            }
+
+
+
+            this.size = size;
+
+
+            this.buffer_data = this.getBufferData();
+
+        }
+
+        getBufferData(){
+
+
+            const bezier_buffer_data = new Float32Array((this.size+1)*21);
+
+
+            this.shapes.forEach(function (shape) {
+
+                bezier_buffer_data.set(shape.getBufferData(), shape.offset*21);
+            });
+
+
+
+            return bezier_buffer_data;
+        }
+
+        update(shape_index, update){
+
+
+
+            try{
+
+                let shape = this.index[shape_index];
+
+                shape.update(update);
+
+                this.buffer_data.fill(0,shape.offset*21, (shape.offset + shape.size)*21);
+                this.buffer_data.set(shape.getBufferData(), shape.offset*21);
+            } catch (e){
+
+
+                console.warn(`Shape ${shape_index} had an error updating on  frame ${frame}`);
+
+
+                if(!this.errors[shape_index]) this.errors[shape_index] = 1;
+                else  this.errors[shape_index] +=1;
+
+                console.warn(e);
+            }
+
+
+        }
+
+    }
+
+    class Bucket{
+
+        constructor(shapes){
+
+            this.shapes = shapes;
+            this.length = 0;
+
+            for(const shape of shapes){
+                this.length+= shape.size;
+            }
+
+
+        }
+
+        push(shape){
+
+            this.shapes.push(shape);
+            this.length += shape.size;
+        }
+
+    }
+
+
+    class UpdateManager{
+
+        constructor(updates, shape_list){
+
+            this.updates = updates;
+
+            this.duration = updates.length;
+
+            this.shape_list = shape_list;
+
+
+        }
+
+
+        update(){
+
+
+            let updates = this.updates[frame];
+
+            if(!updates) return null;
+
+
+
+            for (const update of updates){
+
+                this.shape_list.update(update[0], update[1]);
+
+            }
+
+
+        }
+
+    }
+
+    class BucketManager{
+
+
+        constructor(shapes){
+
+            this.num_buckets = 250;
+
+            const shapes_per_bucket = Math.ceil(shapes.length / this.num_buckets);
+
+            this.buckets = [];
+
+            for(let i = 0; i <  this.num_buckets; i++){
+
+                if (i === this.num_buckets- 1){
+                    this.buckets.push(new Bucket(shapes.slice(i*shapes_per_bucket)));
+                } else{
+                    this.buckets.push(new Bucket(shapes.slice(i*shapes_per_bucket, (i+1)*shapes_per_bucket)));
+                }
+            }
+
+
+        }
+    }
+
 
 
 
@@ -422,15 +536,18 @@ const vvgl = (function(canvas, options={}) {
 
     function load(json) {
 
-        data.num_bezier_curves = json.num_bezier_curves;
-        data.updates = json.updates;
 
-        data.shapes = json.foreground_shapes;
+        shape_list = new ShapeList(json.shapes);
+        bucket_manager = new BucketManager(shape_list.shapes);
+        update_manager = new UpdateManager(json.updates, shape_list);
 
-        setBezierData(json);
 
-        if(json.scene) setCamera(json.scene);
+        setBufferData();
+        prepareCanvas();
+
+
     }
+
 
 
     function setCamera(scene) {
@@ -481,6 +598,8 @@ const vvgl = (function(canvas, options={}) {
     function update(time) {
 
         frame ++;
+
+        return null;
 
         const updates = data.updates[frame];
 
@@ -758,7 +877,7 @@ const vvgl = (function(canvas, options={}) {
 
         render();
 
-        if(frame < data.updates.length) return window.requestAnimationFrame(step);
+        if(frame < update_manager.duration) return window.requestAnimationFrame(step);
         else{
             console.log(`Done`);
         }
