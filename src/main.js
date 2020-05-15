@@ -538,7 +538,7 @@ const vvgl = (function(canvas, options={}) {
 
         constructor(shapes){
 
-            this.num_buckets = 1;
+            this.num_buckets = 250;
 
             const shapes_per_bucket = Math.ceil(shapes.length / this.num_buckets);
 
