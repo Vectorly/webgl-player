@@ -239,6 +239,9 @@ const vvgl = (function(canvas, options={}) {
     function setBufferData() {
 
 
+        console.log("Setting bufffer data");
+        console.log(shape_list.buffer_data);
+
         gl.bindBuffer(gl.ARRAY_BUFFER, bezier_buffer);
         gl.bufferData(gl.ARRAY_BUFFER, shape_list.buffer_data, gl.DYNAMIC_DRAW);
 
@@ -258,6 +261,23 @@ const vvgl = (function(canvas, options={}) {
 
 
 
+        polygonPointers();
+
+        polygonAttributes.forEach(function (attribute) {
+            gl.enableVertexAttribArray(polygonLocations[attribute]);
+        });
+
+
+
+        bezierPointers();
+
+        bezierAttributes.forEach(function (attribute) {
+            gl.enableVertexAttribArray(bezierLocations[attribute]);
+        });
+
+
+
+
         gl.useProgram(polygonProgram);
         gl.uniform2fv(polygonLocations["resolution"], [2/width, 2/height]);
 
@@ -270,10 +290,39 @@ const vvgl = (function(canvas, options={}) {
 
     class Contour {
 
-        constructor(data){
+        constructor(relative_curves, start){
 
-            this.size = 0;
-            this.curves = [0];
+            this.length = 0;
+            this.curves = [];
+
+            for (const r of relative_curves){
+
+
+                this.length+=1;
+                let x,y;
+
+
+                if(r.length === 3){
+
+                    x = [0, 0, r[1], r[1]].map(x => x+start[0]);
+                    y = [0, 0, r[2], r[2]].map(y => y+start[1]);
+
+
+                }else{
+
+                    x = [0, r[0], r[1], r[2]].map(x => x+start[0]);
+                    y = [0, r[3], r[4], r[5]].map(y => y+start[1]);
+
+                }
+
+                start[0] = x[3];
+                start[1] = y[3];
+
+                this.curves.push(...x, ...y);
+
+
+            }
+
 
         }
 
@@ -298,36 +347,35 @@ const vvgl = (function(canvas, options={}) {
 
 
             this.xy = data.xy;
-            this.id = data.rid;
             this.color = data.color;
+
 
             this.contours = [];
 
             let offset= 0;
+            let start = [0, 0];
 
 
+            for (let i=0; i < 1; i++){
 
-            for (let i=0; i < data.contours.length; i++){
 
-                let contour = new Contour(data.contours[i]);
+                let contour = new Contour(data.contours[i], start);
 
                 contour.offset = offset;
 
                 this.contours.push(contour);
 
-                offset+=contour.size;
+                offset+=contour.length;
 
 
             }
 
-
-
+            this.size = data.foreground ? data.max_curves: offset;
 
 
         }
 
         update(update){
-
 
 
 
@@ -337,7 +385,7 @@ const vvgl = (function(canvas, options={}) {
 
         getBufferData(){
 
-            const data = new Float32Array(this.size*21);
+            const data = new Float32Array(this.size*13);
             const shape = this;
 
             let offset = 0;
@@ -345,7 +393,22 @@ const vvgl = (function(canvas, options={}) {
 
             for (let i = 0; i < this.contours.length; i++){
 
+
                 let contour = this.contours[i];
+
+                for (let j = 0; j < contour.length; j++){
+
+
+                    data.set(contour.curves.slice(j*8, (j+1)*8), offset);
+                    data.set(shape.xy, offset+8);
+                    data.set(shape.color, offset+10);
+
+
+                    offset+=13;
+
+                }
+
+
 
 
             }
@@ -374,28 +437,20 @@ const vvgl = (function(canvas, options={}) {
 
             for (let i=0; i < shapes.length; i++){
 
-
-
-
-
                 let shape =  new Shape(shapes[i]);
                 shape.offset  = size;
 
-                size += shape.size;
 
+                size += shape.size;
 
                 this.index[shape.id] = shape;
                 this.shapes.push(shape);
 
 
-
-
             }
 
 
-
             this.size = size;
-
 
             this.buffer_data = this.getBufferData();
 
@@ -403,13 +458,14 @@ const vvgl = (function(canvas, options={}) {
 
         getBufferData(){
 
+        //    console.log("Getting shape buffer data");
 
-            const bezier_buffer_data = new Float32Array((this.size+1)*21);
+
+            const bezier_buffer_data = new Float32Array((this.size+1)*13);
 
 
             this.shapes.forEach(function (shape) {
-
-                bezier_buffer_data.set(shape.getBufferData(), shape.offset*21);
+                bezier_buffer_data.set(shape.getBufferData(), shape.offset*13);
             });
 
 
@@ -418,28 +474,6 @@ const vvgl = (function(canvas, options={}) {
         }
 
         update(shape_index, update){
-
-
-
-            try{
-
-                let shape = this.index[shape_index];
-
-                shape.update(update);
-
-                this.buffer_data.fill(0,shape.offset*21, (shape.offset + shape.size)*21);
-                this.buffer_data.set(shape.getBufferData(), shape.offset*21);
-            } catch (e){
-
-
-                console.warn(`Shape ${shape_index} had an error updating on  frame ${frame}`);
-
-
-                if(!this.errors[shape_index]) this.errors[shape_index] = 1;
-                else  this.errors[shape_index] +=1;
-
-                console.warn(e);
-            }
 
 
         }
@@ -508,7 +542,7 @@ const vvgl = (function(canvas, options={}) {
 
         constructor(shapes){
 
-            this.num_buckets = 250;
+            this.num_buckets = 1;
 
             const shapes_per_bucket = Math.ceil(shapes.length / this.num_buckets);
 
@@ -746,12 +780,21 @@ const vvgl = (function(canvas, options={}) {
     }
 
 
-    function renderShapes(shapes) {
+    function renderShapes(bucket) {
 
-        shapes.forEach(function (shape) {
+        bucket.shapes.forEach(function (shape) {
 
-            for (let i = 0; i < shape.contour_lengths.length; i++){
-                gl.drawArrays(gl.TRIANGLE_FAN, shape.contour_offsets[i],  shape.contour_lengths[i] );
+
+            for (let i = 0; i < shape.contours.length; i++){
+
+                if(shape.size > 0 && shape.contours[i].length > 0){
+
+
+
+                    gl.drawArrays(gl.TRIANGLE_FAN, shape.offset + shape.contours[i].offset,  shape.contours[i].length);
+                }
+
+
             }
 
         });
@@ -759,11 +802,12 @@ const vvgl = (function(canvas, options={}) {
 
 
 
-
     function renderBeziers(offset, i) {
 
+        let l = bucket_manager.buckets[i].length;
 
-        if(data.bucket_lengths[i] > 0){
+
+        if(l > 0){
 
             gl.vertexAttribPointer(bezierLocations["x_vector"], 4, gl.FLOAT, false, 52, 52*offset);
             gl.vertexAttribPointer(bezierLocations["y_vector"], 4, gl.FLOAT, false, 52, 16 + 52*offset);
@@ -771,13 +815,15 @@ const vvgl = (function(canvas, options={}) {
             gl.vertexAttribPointer(bezierLocations["color"], 4, gl.FLOAT, false, 52, 40 + 52*offset);
 
 
-            if(isWebGL2) gl.drawArraysInstanced(gl.TRIANGLE_FAN,  0, num_bezier_vertices, data.bucket_lengths[i]-1);
-            else extensions.angle.drawArraysInstancedANGLE(gl.TRIANGLE_FAN,  0, num_bezier_vertices, data.bucket_lengths[i]-1);
+            if(isWebGL2) gl.drawArraysInstanced(gl.TRIANGLE_FAN,  0, num_bezier_vertices, l);
+            else extensions.angle.drawArraysInstancedANGLE(gl.TRIANGLE_FAN,  0, num_bezier_vertices, l);
 
         }
 
-        return offset + data.bucket_lengths[i];
+        return offset +l;
     }
+
+
 
 
 
@@ -794,17 +840,18 @@ const vvgl = (function(canvas, options={}) {
         let offset = 0;
 
 
-        for(let i =0; i < data.num_buckets; i++){
+        for(let i =0; i < bucket_manager.num_buckets; i++){
 
             gl.stencilFunc(gl.ALWAYS, i+1 , 0xff);
             gl.stencilMask(i+1);
             gl.depthMask(false);
-            gl.colorMask(false, false, false, false);
+            gl.colorMask(true, true, true, true);
 
             if(isWebGL2){
                 offset =  renderShapes2(offset, i)
             }  else{
-                renderShapes(data.buckets[i]);
+
+                renderShapes(bucket_manager.buckets[i]);
             }
 
         }
@@ -815,7 +862,7 @@ const vvgl = (function(canvas, options={}) {
 
         gl.stencilOp( gl.KEEP,  gl.KEEP, gl.INVERT);
 
-        for(let i =0; i < data.num_buckets; i++){
+        for(let i =0; i < bucket_manager.num_buckets; i++){
 
             gl.stencilFunc(gl.ALWAYS, (i+1) , 0xff);
             gl.stencilMask(i+1);
@@ -835,7 +882,7 @@ const vvgl = (function(canvas, options={}) {
 
         offset = 0;
 
-        for(let i =0; i < data.num_buckets; i++){
+        for(let i =0; i < bucket_manager.num_buckets; i++){
 
             gl.stencilFunc(gl.EQUAL, (i+1) , 0xff);
             gl.stencilMask(i+1);
@@ -846,7 +893,7 @@ const vvgl = (function(canvas, options={}) {
             if(isWebGL2){
                 offset =  renderShapes2(offset, i)
             }  else{
-                renderShapes(data.buckets[i]);
+                renderShapes(bucket_manager.buckets[i]);
             }
 
         }
@@ -858,7 +905,7 @@ const vvgl = (function(canvas, options={}) {
         bezierPointers();
         gl.stencilOp(gl.KEEP, gl.KEEP, gl.KEEP);
 
-        for(let i =0; i < data.num_buckets; i++){
+        for(let i =0; i < bucket_manager.num_buckets; i++){
 
             gl.stencilFunc(gl.EQUAL, i+1 , 0xff);
             gl.stencilMask(255-(i+1));
