@@ -238,10 +238,6 @@ const vvgl = (function(canvas, options={}) {
 
     function setBufferData() {
 
-
-        console.log("Setting bufffer data");
-        console.log(shape_list.buffer_data);
-
         gl.bindBuffer(gl.ARRAY_BUFFER, bezier_buffer);
         gl.bufferData(gl.ARRAY_BUFFER, shape_list.buffer_data, gl.DYNAMIC_DRAW);
 
@@ -845,7 +841,7 @@ const vvgl = (function(canvas, options={}) {
             gl.stencilFunc(gl.ALWAYS, i+1 , 0xff);
             gl.stencilMask(i+1);
             gl.depthMask(false);
-            gl.colorMask(true, true, true, true);
+            gl.colorMask(false, false, false, false);
 
             if(isWebGL2){
                 offset =  renderShapes2(offset, i)
