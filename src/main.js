@@ -1,6 +1,8 @@
 const vvgl = (function(canvas, options={}) {
 
 
+    const msgpack = require("msgpack-lite");
+
     const vvgl = this;
 
     const {context, isWebGL2} = getContext(canvas);
@@ -643,8 +645,10 @@ const vvgl = (function(canvas, options={}) {
 
 
 
-    function load(json) {
+    function load(data) {
 
+
+        const json = msgpack.decode(data);
 
         shape_list = new ShapeList(json.shapes);
         bucket_manager = new BucketManager(shape_list.shapes);

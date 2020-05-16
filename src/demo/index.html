@@ -24,10 +24,10 @@
 
 
 
-    loadJSON("data.json", function (json) {
+    loadJSON("data.json", function (data) {
 
 
-        renderer.load(json);
+        renderer.load(data);
 
         renderer.play();
 
@@ -42,10 +42,10 @@
         let oReq = new XMLHttpRequest();
         oReq.onload = function (e) {
 
-            callback(JSON.parse(oReq.responseText));
+            callback(new Uint8Array(this.response));
         };
         oReq.open("GET", filename);
-        oReq.responseType = "text";
+        oReq.responseType = "arraybuffer";
         oReq.send();
 
     }
