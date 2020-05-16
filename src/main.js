@@ -214,7 +214,7 @@ const vvgl = (function(canvas, options={}) {
     function initBuffers() {
 
 
-        let step = 5;
+        let step = 10;
 
 
         for (let i=0; i <= step; i++){
