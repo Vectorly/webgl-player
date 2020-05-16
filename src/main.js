@@ -371,7 +371,7 @@ const vvgl = (function(canvas, options={}) {
 
             this.hidden =data.foreground ? data.hidden: false;
 
-            if(data.foreground) this.size = data.max_curves;
+            if(data.foreground) this.size = data.max_curves*5;
 
 
 
@@ -402,7 +402,7 @@ const vvgl = (function(canvas, options={}) {
 
             }
 
-            if(!data.foreground) this.size = offset;
+         //   if(!data.foreground) this.size = offset;
 
 
 
@@ -411,12 +411,15 @@ const vvgl = (function(canvas, options={}) {
         update(update){
 
 
-
             if(update.type ==="morph"){
                 this.set(update.contours);
             } else if(update.type === "show"){
                 this.hidden = false;
             } else if(update.type === "hide"){
+
+
+
+
                 this.hidden = true;
             }
 
@@ -430,6 +433,8 @@ const vvgl = (function(canvas, options={}) {
 
             const data = new Float32Array(this.size*13);
             const shape = this;
+
+        //    if(this.hidden) return data;
 
             let offset = 0;
 
