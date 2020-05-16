@@ -294,14 +294,30 @@ const vvgl = (function(canvas, options={}) {
             for (const r of relative_curves){
 
 
-                this.length+=1;
+
                 let x,y;
 
 
                 if(r.length === 3){
 
-                    x = [0, 0, r[1], r[1]].map(x => x+start[0]);
-                    y = [0, 0, r[2], r[2]].map(y => y+start[1]);
+                    if(r[0] ==='l'){
+                        x = [0, 0, r[1], r[1]].map(x => x+start[0]);
+                        y = [0, 0, r[2], r[2]].map(y => y+start[1]);
+
+                        start[0] = x[3];
+                        start[1] = y[3];
+
+                        this.length+=1;
+                        this.curves.push(...x, ...y);
+
+                    } else{
+
+                        start[0] += r[1];
+                        start[1] += r[2];
+
+                    }
+
+
 
 
                 }else{
@@ -309,12 +325,17 @@ const vvgl = (function(canvas, options={}) {
                     x = [0, r[0], r[1], r[2]].map(x => x+start[0]);
                     y = [0, r[3], r[4], r[5]].map(y => y+start[1]);
 
+                    start[0] = x[3];
+                    start[1] = y[3];
+
+                    this.length+=1;
+                    this.curves.push(...x, ...y);
+
                 }
 
-                start[0] = x[3];
-                start[1] = y[3];
 
-                this.curves.push(...x, ...y);
+
+
 
 
             }
@@ -359,6 +380,10 @@ const vvgl = (function(canvas, options={}) {
 
                 contour.offset = offset;
 
+            //    start = [contour.curves[contour.length-2],contour.curves[contour.length-1] ];
+
+             //   console.log(contour.curves[contour.length-2]);
+
                 this.contours.push(contour);
 
                 offset+=contour.length;
@@ -367,6 +392,10 @@ const vvgl = (function(canvas, options={}) {
             }
 
             this.size = data.foreground ? data.max_curves: offset;
+
+
+
+            this.hidden =data.foreground ? data.hidden: false;
 
 
         }
@@ -385,7 +414,6 @@ const vvgl = (function(canvas, options={}) {
             const shape = this;
 
             let offset = 0;
-
 
             for (let i = 0; i < this.contours.length; i++){
 
@@ -461,6 +489,8 @@ const vvgl = (function(canvas, options={}) {
 
 
             this.shapes.forEach(function (shape) {
+                if(shape.hidden) return null;
+
                 bezier_buffer_data.set(shape.getBufferData(), shape.offset*13);
             });
 
@@ -593,11 +623,11 @@ const vvgl = (function(canvas, options={}) {
 
 
         gl.useProgram(polygonProgram);
-        gl.uniform2fv(polygonLocations["resolution"], [2/width, 2/height]);
+        gl.uniform2fv(polygonLocations["resolution"], [2/width, -2/height]);
         gl.uniform2fv(polygonLocations["camera_offset"], [offset_w, offset_h]);
 
         gl.useProgram(bezierProgram);
-        gl.uniform2fv(bezierLocations["resolution"], [2/width, 2/height]);
+        gl.uniform2fv(bezierLocations["resolution"], [2/width, -2/height]);
         gl.uniform2fv(bezierLocations["camera_offset"], [offset_w, offset_h]);
 
     }
@@ -784,7 +814,6 @@ const vvgl = (function(canvas, options={}) {
             for (let i = 0; i < shape.contours.length; i++){
 
                 if(shape.size > 0 && shape.contours[i].length > 0){
-
 
 
                     gl.drawArrays(gl.TRIANGLE_FAN, shape.offset + shape.contours[i].offset,  shape.contours[i].length);
