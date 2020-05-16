@@ -565,14 +565,35 @@ const vvgl = (function(canvas, options={}) {
 
     class UpdateManager{
 
-        constructor(updates, shape_list){
+        constructor(updates, shape_list, duration){
 
-            this.updates = updates;
+            this.duration = duration;
 
-            this.duration = updates.length;
+            this.updates = this.unpack(updates);
+
+
 
             this.shape_list = shape_list;
 
+
+
+        }
+
+        unpack(updates){
+
+            const updates_by_frame = new Array(this.duration);
+
+
+            for (const update of updates){
+
+                if(!updates_by_frame[update.frame]) updates_by_frame[update.frame] = [];
+
+                updates_by_frame[update.frame].push(update);
+            }
+
+
+
+            return updates_by_frame;
 
         }
 
@@ -631,7 +652,7 @@ const vvgl = (function(canvas, options={}) {
 
         shape_list = new ShapeList(json.shapes);
         bucket_manager = new BucketManager(shape_list.shapes);
-        update_manager = new UpdateManager(json.updates, shape_list);
+        update_manager = new UpdateManager(json.updates, shape_list, json.duration);
 
 
         setBufferData();
