@@ -286,68 +286,64 @@ const vvgl = (function(canvas, options={}) {
 
     class Contour {
 
-        constructor(relative_curves, start){
+        constructor(path, start){
 
             this.length = 0;
             this.curves = [];
 
-            for (const r of relative_curves){
+
+            let i = 0;
+            let x,y;
+
+            while (i < path.length) {
+
+                let element = path[i];
 
 
+                if (element === "m") {
 
-                let x,y;
+                    start[0] += path[i + 1];
+                    start[1] += path[i + 2];
 
+                    i += 3;
 
-                if(r.length === 3){
-
-                    if(r[0] ==='l'){
-                        x = [0, 0, r[1], r[1]].map(x => x+start[0]);
-                        y = [0, 0, r[2], r[2]].map(y => y+start[1]);
-
-                        start[0] = x[3];
-                        start[1] = y[3];
-
-                        this.length+=1;
-                        this.curves.push(...x, ...y);
-
-                    } else{
-
-                        start[0] += r[1];
-                        start[1] += r[2];
-
-                    }
+                } else if (element === "l") {
 
 
-
-
-                }else{
-
-                    x = [0, r[0], r[1], r[2]].map(x => x+start[0]);
-                    y = [0, r[3], r[4], r[5]].map(y => y+start[1]);
+                    x = [0, 0, path[i + 1], path[i + 1]].map(x => x + start[0]);
+                    y = [0, 0, path[i + 2], path[i + 2]].map(y => y + start[1]);
 
                     start[0] = x[3];
                     start[1] = y[3];
 
-                    this.length+=1;
+                    this.length += 1;
                     this.curves.push(...x, ...y);
 
+                    i += 3;
+                } else {
+
+
+                    x = [0, path[i], path[i+1], path[i+2]].map(x => x + start[0]);
+                    y = [0, path[i+3], path[i+4], path[i+5]].map(y => y + start[1]);
+
+                    start[0] = x[3];
+                    start[1] = y[3];
+
+                    this.length += 1;
+                    this.curves.push(...x, ...y);
+
+                    i += 6;
+
+
                 }
-
-
-
-
-
 
             }
 
 
-        }
-
-
-
-        update(){
 
         }
+
+
 
 
 
