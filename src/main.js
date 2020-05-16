@@ -366,14 +366,12 @@ const vvgl = (function(canvas, options={}) {
             this.xy = data.xy;
             this.color = data.color;
 
-
-            this.set(data.contours);
+            let length = this.set(data.contours);
 
             this.hidden =data.foreground ? data.hidden: false;
 
-            if(data.foreground) this.size = data.max_curves*5;
-
-
+            if(data.foreground) this.size = data.max_curves;
+            else this.size = length;
 
 
         }
@@ -401,6 +399,8 @@ const vvgl = (function(canvas, options={}) {
 
 
             }
+
+            return offset;
 
          //   if(!data.foreground) this.size = offset;
 
