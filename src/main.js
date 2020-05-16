@@ -371,6 +371,10 @@ const vvgl = (function(canvas, options={}) {
 
             this.hidden =data.foreground ? data.hidden: false;
 
+            if(data.foreground) this.size = data.max_curves;
+
+
+
 
         }
 
@@ -398,7 +402,9 @@ const vvgl = (function(canvas, options={}) {
 
             }
 
-            this.size = data.foreground ? data.max_curves: offset;
+            if(!data.foreground) this.size = offset;
+
+
 
         }
 
@@ -407,7 +413,7 @@ const vvgl = (function(canvas, options={}) {
 
 
             if(update.type ==="morph"){
-               // this.set(update.contours);
+                this.set(update.contours);
             } else if(update.type === "show"){
                 this.hidden = false;
             } else if(update.type === "hide"){
@@ -519,6 +525,8 @@ const vvgl = (function(canvas, options={}) {
             this.buffer_data.fill(0,shape.offset*13, (shape.offset + shape.size)*13);
 
             if(!shape.hidden){
+
+
                 this.buffer_data.set(shape.getBufferData(), shape.offset*13);
             }
 
@@ -570,9 +578,6 @@ const vvgl = (function(canvas, options={}) {
             let updates = this.updates[frame];
 
             if(!updates) return null;
-
-
-            console.log(`Updates for frame ${frame}`);
 
             for (const update of updates){
 
