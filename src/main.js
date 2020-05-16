@@ -373,16 +373,12 @@ const vvgl = (function(canvas, options={}) {
             let start = [0, 0];
 
 
-            for (let i=0; i < 1; i++){
+            for (let i=0; i < data.contours.length; i++){
 
 
                 let contour = new Contour(data.contours[i], start);
 
                 contour.offset = offset;
-
-            //    start = [contour.curves[contour.length-2],contour.curves[contour.length-1] ];
-
-             //   console.log(contour.curves[contour.length-2]);
 
                 this.contours.push(contour);
 
