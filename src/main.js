@@ -367,16 +367,27 @@ const vvgl = (function(canvas, options={}) {
             this.color = data.color;
 
 
+            this.set(data.contours);
+
+            this.hidden =data.foreground ? data.hidden: false;
+
+
+        }
+
+
+        set(contours){
+
+
             this.contours = [];
 
             let offset= 0;
             let start = [0, 0];
 
 
-            for (let i=0; i < data.contours.length; i++){
+            for (let i=0; i < contours.length; i++){
 
 
-                let contour = new Contour(data.contours[i], start);
+                let contour = new Contour(contours[i], start);
 
                 contour.offset = offset;
 
@@ -389,14 +400,19 @@ const vvgl = (function(canvas, options={}) {
 
             this.size = data.foreground ? data.max_curves: offset;
 
-
-
-            this.hidden =data.foreground ? data.hidden: false;
-
-
         }
 
         update(update){
+
+
+
+            if(update.type ==="morph"){
+               // this.set(update.contours);
+            } else if(update.type === "show"){
+                this.hidden = false;
+            } else if(update.type === "hide"){
+                this.hidden = true;
+            }
 
 
 
@@ -478,8 +494,6 @@ const vvgl = (function(canvas, options={}) {
 
         getBufferData(){
 
-        //    console.log("Getting shape buffer data");
-
 
             const bezier_buffer_data = new Float32Array((this.size+1)*13);
 
@@ -495,7 +509,18 @@ const vvgl = (function(canvas, options={}) {
             return bezier_buffer_data;
         }
 
-        update(shape_index, update){
+        update(update){
+
+            let shape = this.shapes[update.i];
+
+            shape.update(update);
+
+
+            this.buffer_data.fill(0,shape.offset*13, (shape.offset + shape.size)*13);
+
+            if(!shape.hidden){
+                this.buffer_data.set(shape.getBufferData(), shape.offset*13);
+            }
 
 
         }
@@ -547,10 +572,11 @@ const vvgl = (function(canvas, options={}) {
             if(!updates) return null;
 
 
+            console.log(`Updates for frame ${frame}`);
 
             for (const update of updates){
 
-                this.shape_list.update(update[0], update[1]);
+                this.shape_list.update(update);
 
             }
 
@@ -655,80 +681,13 @@ const vvgl = (function(canvas, options={}) {
 
         frame ++;
 
+        update_manager.update();
+
+        gl.bufferSubData(gl.ARRAY_BUFFER, 0, shape_list.buffer_data, 0, shape_list.buffer_data.length);
+
+
         return null;
 
-        const updates = data.updates[frame];
-
-        if(!updates) return null;
-
-        updates.forEach(function (update) {
-
-
-            if(update.type === "camera") return updateCamera(update);
-
-            let shape_id = update.i;
-
-
-            let shape = data.shapes[shape_id];
-
-            let offset = data.offsets[shape_id]*13;
-
-
-            data.bezier_buffer.fill(0, offset, offset + shape.max_curves*13);
-
-            if(update.type === "hide") return null;
-
-            for(let j = 0; j < update.bezier_curves.length; j++){
-                let curve = update.bezier_curves[j];
-
-                let idx = offset + j*13;
-
-                data.bezier_buffer.set(curve, idx);
-
-                data.bezier_buffer.set(shape.data, idx+8);
-
-            }
-
-            if(update.type === "morph") {
-
-
-                let contour_offsets = new Array(update.contour_lengths.length);
-
-                let contour_offset= shape.offset;
-                let index_offset = 0;
-
-                if(isWebGL2) array_index.fill(0xffff, shape.index_offset,   shape.index_offset + shape.max_curves + shape.max_contours );
-
-
-                for(let j = 0; j < update.contour_lengths.length; j++){
-
-                    if(isWebGL2) array_index.set(bezier_index.slice(contour_offset,  contour_offset + update.contour_lengths[j]), index_offset + shape.index_offset);
-                    else contour_offsets[j] = contour_offset;
-                    index_offset +=  update.contour_lengths[j] + 1;
-                    contour_offset +=  update.contour_lengths[j];
-
-                }
-
-
-                if(!isWebGL2){
-                    data.shapes[shape_id].contour_lengths = update.contour_lengths;
-                    data.shapes[shape_id].contour_offsets = contour_offsets;
-                }
-
-
-
-            }
-
-        });
-
-
-        if(isWebGL2){
-            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, element_array_index_buffer);
-            gl.bufferSubData(gl.ELEMENT_ARRAY_BUFFER, 0,  array_index ,  0, data.foreground_index_length);
-            gl.bindBuffer(gl.ARRAY_BUFFER, bezier_buffer);
-        }
-
-        gl.bufferSubData(gl.ARRAY_BUFFER, 0, data.bezier_buffer, 0, data.foreground_length);
 
     }
 
