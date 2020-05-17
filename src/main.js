@@ -126,7 +126,7 @@ const vvgl = (function(canvas, options={}) {
 
             "void main(void) {",
 
-            "vec2 point = (vec2(dot(t_vector, x_vector), dot(t_vector, y_vector)) + offset + camera_offset)*resolution - 1.0;",
+            "vec2 point = (vec2(dot(t_vector, x_vector), dot(t_vector, y_vector)) + offset + camera_offset)*resolution + vec2(-1.0, 1.0);",
             "vColor = color/256.0;",
             "gl_Position = vec4(point, 0, 1);",
             "}"
@@ -159,7 +159,7 @@ const vvgl = (function(canvas, options={}) {
             "varying lowp vec3 vColor;",
             "void main(void) {",
 
-            "vec2 point = (vec2(x1, y1)+offset + camera_offset)*resolution - 1.0; ",
+            "vec2 point = (vec2(x1, y1)+offset + camera_offset)*resolution + vec2(-1.0, 1.0); ",
 
             "vColor = color/256.0;",
             "gl_Position = vec4(point, 0, 1.0);",
@@ -280,10 +280,10 @@ const vvgl = (function(canvas, options={}) {
 
 
         gl.useProgram(polygonProgram);
-        gl.uniform2fv(polygonLocations["resolution"], [2/width, 2/height]);
+        gl.uniform2fv(polygonLocations["resolution"], [2/width, -2/height]);
 
         gl.useProgram(bezierProgram);
-        gl.uniform2fv(bezierLocations["resolution"], [2/width, 2/height]);
+        gl.uniform2fv(bezierLocations["resolution"], [2/width, -2/height]);
 
     }
 
@@ -697,7 +697,7 @@ const vvgl = (function(canvas, options={}) {
 
 
         gl.useProgram(polygonProgram);
-        gl.uniform2fv(polygonLocations["resolution"], [2/width, -2/height]);
+        gl.uniform2fv(polygonLocations["resolution"], [2/width, 2/height]);
         gl.uniform2fv(polygonLocations["camera_offset"], [offset_w, offset_h]);
 
         gl.useProgram(bezierProgram);
