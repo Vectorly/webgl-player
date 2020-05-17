@@ -17,19 +17,15 @@
 
 
 
-
-
-
     const renderer = vvgl("glcanvas");
-
-
 
     loadJSON("data.json", function (data) {
 
+        renderer.load(data, function () {
 
-        renderer.load(data);
+            renderer.play();
 
-        renderer.play();
+        });
 
     });
 

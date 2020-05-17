@@ -54,6 +54,7 @@
     "whatwg-fetch": "^3.0.0"
   },
   "dependencies": {
+    "jszip": "^3.4.0",
     "msgpack-lite": "^0.1.26"
   }
 }

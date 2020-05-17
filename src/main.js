@@ -1,6 +1,9 @@
 const vvgl = (function(canvas, options={}) {
 
 
+
+    const JSZip = require('jszip');
+
     const msgpack = require("msgpack-lite");
 
     const vvgl = this;
@@ -645,18 +648,36 @@ const vvgl = (function(canvas, options={}) {
 
 
 
-    function load(data) {
+    function load(data, callback) {
 
 
-        const json = msgpack.decode(data);
+        const zip = new JSZip();
 
-        shape_list = new ShapeList(json.shapes);
-        bucket_manager = new BucketManager(shape_list.shapes);
-        update_manager = new UpdateManager(json.updates, shape_list, json.duration);
+        zip.loadAsync(data).then(function(contents) {
+
+            contents.file('data.bl').async('arraybuffer').then(function(content) {
+
+                const json = msgpack.decode(new Uint8Array(content));
 
 
-        setBufferData();
-        prepareCanvas();
+
+                shape_list = new ShapeList(json.shapes);
+                bucket_manager = new BucketManager(shape_list.shapes);
+                update_manager = new UpdateManager(json.updates, shape_list, json.duration);
+
+
+                setBufferData();
+                prepareCanvas();
+
+
+                callback();
+
+
+
+            });
+        });
+
+
 
 
     }
