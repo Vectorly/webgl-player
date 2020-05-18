@@ -1,7 +1,5 @@
 const vvgl = (function(canvas, options={}) {
 
-
-
     const JSZip = require('jszip');
 
     const msgpack = require("msgpack-lite");
@@ -291,10 +289,12 @@ const vvgl = (function(canvas, options={}) {
 
     class Contour {
 
-        constructor(path, start){
+        constructor(path, start, xy){
 
             this.length = 0;
             this.curves = [];
+
+            this.xy = xy;
 
 
             let i = 0;
@@ -386,17 +386,21 @@ const vvgl = (function(canvas, options={}) {
             let offset= 0;
             let start = [0, 0];
 
+            this.contour_offsets = [0];
+
 
             for (let i=0; i < contours.length; i++){
 
 
-                let contour = new Contour(contours[i], start);
+                let contour = new Contour(contours[i], start, this.xy);
 
-                contour.offset = offset;
+             //   contour.offset = offset;
 
                 this.contours.push(contour);
 
                 offset+=contour.length;
+
+                this.contour_offsets.push(offset);
 
 
             }
@@ -405,6 +409,19 @@ const vvgl = (function(canvas, options={}) {
 
          //   if(!data.foreground) this.size = offset;
 
+        }
+
+        push(contour){
+
+            let offset = this.contour_offsets[this.contour_offsets.length-1];
+
+            this.contours.push(contour);
+
+            offset+=contour.length;
+
+            this.contour_offsets.push(offset);
+
+            this.size +=contour.length;
 
 
         }
@@ -433,7 +450,9 @@ const vvgl = (function(canvas, options={}) {
         getBufferData(){
 
             const data = new Float32Array(this.size*13);
+
             const shape = this;
+
 
         //    if(this.hidden) return data;
 
@@ -444,11 +463,13 @@ const vvgl = (function(canvas, options={}) {
 
                 let contour = this.contours[i];
 
+
+
                 for (let j = 0; j < contour.length; j++){
 
 
                     data.set(contour.curves.slice(j*8, (j+1)*8), offset);
-                    data.set(shape.xy, offset+8);
+                    data.set(contour.xy, offset+8);
                     data.set(shape.color, offset+10);
 
 
@@ -475,24 +496,47 @@ const vvgl = (function(canvas, options={}) {
 
         constructor(shapes){
 
-
             this.shapes = [];
-            this.index = {};
-
-            this.errors = {};
 
             let size = 0;
 
             for (let i=0; i < shapes.length; i++){
 
+
                 let shape =  new Shape(shapes[i]);
+
+                this.shapes.push(shape);
+
+
+            }
+
+            for (let i=0; i < shapes.length; i++){
+
+
+                let shape = this.shapes[i];
+
+                if(shapes[i].children){
+
+
+                    for (const child_index of shapes[i].children){
+
+                        let child = this.shapes[child_index];
+                        let child_contour = child.contours[0];
+
+                        console.log(`Shape ${i} has child at index ${child_index}`);
+                        shape.push(child_contour);
+
+
+                    }
+
+
+
+                }
+
+
                 shape.offset  = size;
-
-
                 size += shape.size;
 
-                this.index[shape.id] = shape;
-                this.shapes.push(shape);
 
 
             }
@@ -822,8 +866,7 @@ const vvgl = (function(canvas, options={}) {
 
                 if(shape.size > 0 && shape.contours[i].length > 0){
 
-
-                    gl.drawArrays(gl.TRIANGLE_FAN, shape.offset + shape.contours[i].offset,  shape.contours[i].length);
+                    gl.drawArrays(gl.TRIANGLE_FAN, shape.offset + shape.contour_offsets[i],  shape.contours[i].length);
                 }
 
 
