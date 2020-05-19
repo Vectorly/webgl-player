@@ -505,7 +505,6 @@ const vvgl = (function(canvas, options={}) {
 
             return offset;
 
-         //   if(!data.foreground) this.size = offset;
 
 
 
