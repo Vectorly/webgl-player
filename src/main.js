@@ -330,7 +330,7 @@ const vvgl = (function(canvas, options={}) {
                     let dx = path[i + 3];
                     let dy = path[i + 4];
 
-
+                    // Put this computation into the player
 
                     let norm = Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2));
 
