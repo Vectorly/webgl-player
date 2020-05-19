@@ -327,9 +327,31 @@ const vvgl = (function(canvas, options={}) {
                     i += 3;
                 } else {
 
+                    let dx = path[i + 3];
+                    let dy = path[i + 4];
 
-                    x = [0, path[i], path[i+1], path[i+2]].map(x => x + start[0]);
-                    y = [0, path[i+3], path[i+4], path[i+5]].map(y => y + start[1]);
+
+
+                    let norm = Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2));
+
+                    let nx = -dy/norm;
+                    let ny = dx/norm;
+                    let fx = dx/norm;
+                    let fy = dy/norm;
+
+                    let f1 = path[i];
+                    let f2 =  path[i+1];
+                    let n =path[i+2];
+
+                    let c1x = n*nx + f1*fx;
+                    let c1y = n*ny + f1*fy;
+
+                    let c2x = n*nx + f2*fx + dx;
+                    let c2y = n*ny + f2*fy + dy;
+
+
+                    x = [0, c1x, c2x, dx].map(x => x + start[0]);
+                    y = [0,c1y, c2y,dy].map(y => y + start[1]);
 
                     start[0] = x[3];
                     start[1] = y[3];
@@ -337,7 +359,7 @@ const vvgl = (function(canvas, options={}) {
                     this.length += 1;
                     this.curves.push(...x, ...y);
 
-                    i += 6;
+                    i += 5;
 
 
                 }
