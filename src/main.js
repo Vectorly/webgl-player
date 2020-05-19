@@ -352,8 +352,8 @@ const vvgl = (function(canvas, options={}) {
                         let fx = dx/norm;
                         let fy = dy/norm;
 
-                        let f2 =  path[i];
-                        let n =path[i+1];
+                        let f2 =  path[i+1];
+                        let n =path[i];
 
                         let c2x = n*nx + f2*fx + dx;
                         let c2y = n*ny + f2*fy + dy;
@@ -367,8 +367,8 @@ const vvgl = (function(canvas, options={}) {
                         let last_fx = last_dx/last_norm;
                         let last_fy = last_dy/last_norm;
 
-                        let last_f2 = last_curve[l-4];
-                        let last_n = last_curve[l-3];
+                        let last_f2 = last_curve[l-3];
+                        let last_n = last_curve[0];
 
                         let px = last_n*last_nx + last_f2*last_fx;
                         let py = last_n*last_ny + last_f2*last_fy;
@@ -411,9 +411,9 @@ const vvgl = (function(canvas, options={}) {
                         let fx = dx/norm;
                         let fy = dy/norm;
 
-                        let f1 = path[i];
-                        let f2 =  path[i+1];
-                        let n =path[i+2];
+                        let f1 = path[i+1];
+                        let f2 =  path[i+2];
+                        let n =path[i];
 
                         let c1x = n*nx + f1*fx;
                         let c1y = n*ny + f1*fy;
