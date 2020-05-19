@@ -304,7 +304,7 @@ const vvgl = (function(canvas, options={}) {
 
             let last_curve;
 
-            console.log(`New contour`);
+
 
             while (i < path.length) {
 
@@ -319,6 +319,7 @@ const vvgl = (function(canvas, options={}) {
                     i += 3;
 
                 } else if (element === "l") {
+
 
 
                     x = [0, 0, path[i + 1], path[i + 1]].map(x => x + start[0]);
@@ -341,8 +342,6 @@ const vvgl = (function(canvas, options={}) {
 
                         let l = last_curve.length;
 
-                        console.log(l);
-
                         let dx = path[i + 2];
                         let dy = path[i + 3];
 
@@ -353,14 +352,11 @@ const vvgl = (function(canvas, options={}) {
                         let fx = dx/norm;
                         let fy = dy/norm;
 
-
                         let f2 =  path[i];
                         let n =path[i+1];
 
-
                         let c2x = n*nx + f2*fx + dx;
                         let c2y = n*ny + f2*fy + dy;
-
 
                         let last_dx = last_curve[l-2];
                         let last_dy = last_curve[l-1];
@@ -380,13 +376,13 @@ const vvgl = (function(canvas, options={}) {
                         let p = [px, py];
                         let phat = math.divide(p, math.norm(p));
 
+
                         let q = math.divide(n, math.dot(phat, [-nx, -ny]));
 
-                        let c1 = math.multiply(phat, q);
+                        let c1 = math.multiply(phat, -1*q);
 
                         let c1x = c1[0];
                         let c1y = c1[1];
-
 
                         x = [0, c1x, c2x, dx].map(x => x + start[0]);
                         y = [0,c1y, c2y,dy].map(y => y + start[1]);
@@ -402,6 +398,8 @@ const vvgl = (function(canvas, options={}) {
 
                     } else{
 
+
+                  //      console.log("bezier5");
 
                         let dx = path[i + 3];
                         let dy = path[i + 4];
@@ -432,6 +430,12 @@ const vvgl = (function(canvas, options={}) {
 
                         this.length += 1;
                         this.curves.push(...x, ...y);
+
+                   //     console.log("Last curve");
+                    //    console.log(last_curve);
+
+                     //   console.log("This slice");
+                     //   console.log( path.slice(i, i+5));
 
                         last_curve = path.slice(i, i+5);
                         i += 5;
@@ -945,8 +949,8 @@ const vvgl = (function(canvas, options={}) {
             gl.vertexAttribPointer(bezierLocations["color"], 4, gl.FLOAT, false, 52, 40 + 52*offset);
 
 
-         //   if(isWebGL2) gl.drawArraysInstanced(gl.TRIANGLE_FAN,  0, num_bezier_vertices, l);
-           // else extensions.angle.drawArraysInstancedANGLE(gl.TRIANGLE_FAN,  0, num_bezier_vertices, l);
+            if(isWebGL2) gl.drawArraysInstanced(gl.TRIANGLE_FAN,  0, num_bezier_vertices, l);
+            else extensions.angle.drawArraysInstancedANGLE(gl.TRIANGLE_FAN,  0, num_bezier_vertices, l);
 
         }
 
@@ -1054,7 +1058,7 @@ const vvgl = (function(canvas, options={}) {
 
         render();
 
-        if(frame <1 ) return window.requestAnimationFrame(step);
+        if(frame < update_manager.duration ) return window.requestAnimationFrame(step);
         else{
             console.log(`Done`);
         }
