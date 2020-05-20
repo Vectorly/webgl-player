@@ -23,11 +23,31 @@
 
         renderer.load(data, function () {
 
+
+/*
+            renderer.setFrame(150);
+
+            renderer.render();
+
+
+            setTimeout(function () {
+
+                renderer.setFrame(5);
+
+                renderer.render();
+
+            }, 1000);
+
+            */
+
+
+
             function step() {
 
                 renderer.update();
 
                 renderer.render();
+
 
                 if(renderer.frame < renderer.duration ) return window.requestAnimationFrame(step);
                 else{
@@ -38,6 +58,7 @@
 
             renderer.render();
             window.requestAnimationFrame(step);
+
 
 
         });

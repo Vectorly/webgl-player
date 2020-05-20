@@ -99,8 +99,12 @@ const vvgl = (function(canvas, options={}) {
 
                 vvgl.duration = update_manager.duration;
                 vvgl.frame = update_manager.frame;
+                vvgl.setFrame = setFrame;
+
                 vvgl.render = renderer.render;
                 vvgl.update = update;
+
+
 
 
                 setBufferData();
@@ -123,6 +127,7 @@ const vvgl = (function(canvas, options={}) {
 
 
         update_manager.update();
+        vvgl.frame = update_manager.frame;
 
         gl.bufferSubData(gl.ARRAY_BUFFER, 0, shape_list.buffer_data, 0, shape_list.buffer_data.length);
 
@@ -131,6 +136,24 @@ const vvgl = (function(canvas, options={}) {
 
 
     }
+
+
+
+
+    function setFrame(n) {
+
+
+        update_manager.reset();
+
+        update_manager.setFrame(n);
+
+        gl.bufferSubData(gl.ARRAY_BUFFER, 0, shape_list.buffer_data, 0, shape_list.buffer_data.length);
+
+        vvgl.frame = update_manager.frame;
+
+
+    }
+
 
 
 

@@ -50,17 +50,31 @@ class ShapeList {
         return bezier_buffer_data;
     }
 
+    reset(shape_id){
+
+        let shape = this.shapes[shape_id];
+
+        shape.reset();
+
+        this.buffer_data.fill(0,shape.offset*13, (shape.offset + shape.size)*13);
+
+        if(!shape.hidden){
+
+            this.buffer_data.set(shape.getBufferData(), shape.offset*13);
+        }
+
+
+    }
+
     update(update){
 
         let shape = this.shapes[update.i];
 
         shape.update(update);
 
-
         this.buffer_data.fill(0,shape.offset*13, (shape.offset + shape.size)*13);
 
         if(!shape.hidden){
-
 
             this.buffer_data.set(shape.getBufferData(), shape.offset*13);
         }

@@ -16,7 +16,18 @@ class Shape {
         if(data.foreground) this.size = data.max_curves;
         else this.size = length;
 
+        this.original_contours = data.contours;
 
+        this.original_hidden = data.hidden;
+
+
+    }
+
+    reset(){
+
+        this.hidden = this.original_hidden;
+
+        this.set(this.original_contours);
     }
 
 
@@ -59,9 +70,6 @@ class Shape {
         } else if(update.type === "show"){
             this.hidden = false;
         } else if(update.type === "hide"){
-
-
-
 
             this.hidden = true;
         }

@@ -31,6 +31,42 @@ class UpdateManager{
     }
 
 
+    reset(){
+
+        this.frame  = 0;
+
+        for(let i=0; i < this.shape_list.shapes.length; i++){
+            this.shape_list.reset(i);
+        }
+    }
+
+    setFrame(n){
+
+
+        this.frame  = n;
+
+        for(let i =0; i < n; i++){
+
+            let updates = this.updates[i];
+
+            if(updates){
+                for (const update of updates){
+                    this.shape_list.update(update);
+                }
+            }
+
+        }
+
+
+
+
+
+    }
+
+
+
+
+
     update(){
 
 
