@@ -23,7 +23,22 @@
 
         renderer.load(data, function () {
 
-            renderer.play();
+            function step() {
+
+                renderer.update();
+
+                renderer.render();
+
+                if(renderer.frame < renderer.duration ) return window.requestAnimationFrame(step);
+                else{
+                    console.log(`Done`);
+                }
+
+            }
+
+            renderer.render();
+            window.requestAnimationFrame(step);
+
 
         });
 

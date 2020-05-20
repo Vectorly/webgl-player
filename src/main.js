@@ -8,7 +8,7 @@ const vvgl = (function(canvas, options={}) {
 
     const math = require('mathjs');
 
-    const vvgl = this;
+    const vvgl = {};
 
     const {context, isWebGL2} = getContext(canvas);
 
@@ -45,7 +45,7 @@ const vvgl = (function(canvas, options={}) {
 
     const  num_bezier_vertices = initBuffers();
 
-    let frame = 0;
+    vvgl.frame = 0;
 
     const data = {};
     const extensions = {};
@@ -697,7 +697,7 @@ const vvgl = (function(canvas, options={}) {
         update(){
 
 
-            let updates = this.updates[frame];
+            let updates = this.updates[vvgl.frame];
 
             if(!updates) return null;
 
@@ -759,6 +759,9 @@ const vvgl = (function(canvas, options={}) {
                 shape_list = new ShapeList(json.shapes);
                 bucket_manager = new BucketManager(shape_list.shapes);
                 update_manager = new UpdateManager(json.updates, shape_list, json.duration);
+
+
+                vvgl.duration = update_manager.duration;
 
 
                 setBufferData();
@@ -826,7 +829,7 @@ const vvgl = (function(canvas, options={}) {
 
     function update(time) {
 
-        frame ++;
+        vvgl.frame ++;
 
         update_manager.update();
 
@@ -1069,12 +1072,12 @@ const vvgl = (function(canvas, options={}) {
     }
 
 
+    vvgl.render = render;
+    vvgl.load = load;
+    vvgl.play = play;
+    vvgl.update = update;
 
-
-    return {
-        load: load,
-        play: play
-    };
+    return vvgl;
 
 
 
