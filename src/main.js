@@ -369,7 +369,6 @@ const vvgl = (function(canvas, options={}) {
                         let p = [px, py];
                         let phat = math.divide(p, math.norm(p));
 
-
                         let q = math.divide(n, math.dot(phat, [-nx, -ny]));
 
                         let c1 = math.multiply(phat, -1*q);
@@ -377,8 +376,14 @@ const vvgl = (function(canvas, options={}) {
                         let c1x = c1[0];
                         let c1y = c1[1];
 
+                        if(Math.abs(c1y) > 200 || Math.abs(c1x) > 200){
+                            c1y = 0;
+                            c1x = 0;
+                        }
+
                         x = [0, c1x, c2x, dx].map(x => x + start[0]);
-                        y = [0,c1y, c2y,dy].map(y => y + start[1]);
+                        y = [0, c1y, c2y,dy].map(y => y + start[1]);
+
 
                         start[0] = x[3];
                         start[1] = y[3];
@@ -391,13 +396,13 @@ const vvgl = (function(canvas, options={}) {
 
                     } else{
 
-
-                  //      console.log("bezier5");
-
                         let dx = path[i + 3];
                         let dy = path[i + 4];
 
                         let norm = Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2));
+
+
+
 
                         let nx = -dy/norm;
                         let ny = dx/norm;
@@ -424,11 +429,6 @@ const vvgl = (function(canvas, options={}) {
                         this.length += 1;
                         this.curves.push(...x, ...y);
 
-                   //     console.log("Last curve");
-                    //    console.log(last_curve);
-
-                     //   console.log("This slice");
-                     //   console.log( path.slice(i, i+5));
 
                         last_curve = path.slice(i, i+5);
                         i += 5;
