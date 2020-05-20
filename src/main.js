@@ -1,7 +1,6 @@
 const vvgl = (function(canvas, options={}) {
 
 
-
     const JSZip = require('jszip');
 
     const msgpack = require("msgpack-lite");
@@ -530,8 +529,6 @@ const vvgl = (function(canvas, options={}) {
             const data = new Float32Array(this.size*13);
             const shape = this;
 
-        //    if(this.hidden) return data;
-
             let offset = 0;
 
             for (let i = 0; i < this.contours.length; i++){
@@ -753,7 +750,6 @@ const vvgl = (function(canvas, options={}) {
             contents.file('data.bl').async('arraybuffer').then(function(content) {
 
                 const json = msgpack.decode(new Uint8Array(content));
-
 
 
                 shape_list = new ShapeList(json.shapes);
@@ -1048,33 +1044,9 @@ const vvgl = (function(canvas, options={}) {
 
     }
 
-    function step() {
-
-        update();
-
-        render();
-
-        if(frame < update_manager.duration ) return window.requestAnimationFrame(step);
-        else{
-            console.log(`Done`);
-        }
-    }
-
-
-
-    function play() {
-
-
-        render();
-        window.requestAnimationFrame(step);
-
-
-    }
-
 
     vvgl.render = render;
     vvgl.load = load;
-    vvgl.play = play;
     vvgl.update = update;
 
     return vvgl;
