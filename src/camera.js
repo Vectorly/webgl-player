@@ -20,18 +20,30 @@ const Camera = (function(gl, bezierProgram, polygonProgram) {
 
     camera.set = function (scene) {
 
-        offset_w = scene.offset_w;
-        offset_h = scene.offset_h;
+
+        if(scene){
+            offset_w = scene.offset_w;
+            offset_h = scene.offset_h;
+        }
+
 
 
         gl.useProgram(polygonProgram);
-        gl.uniform2fv(polygonProgram.locations["resolution"], [2/width, 2/height]);
-        gl.uniform2fv(polygonProgram.locations["camera_offset"], [offset_w, offset_h]);
+        gl.uniform2fv(polygonProgram.locations["resolution"], [2/width, -2/height]);
 
         gl.useProgram(bezierProgram);
         gl.uniform2fv(bezierProgram.locations["resolution"], [2/width, -2/height]);
-        gl.uniform2fv(bezierProgram.locations["camera_offset"], [offset_w, offset_h]);
 
+
+        /*
+                gl.useProgram(polygonProgram);
+                gl.uniform2fv(polygonProgram.locations["resolution"], [2/width, 2/height]);
+                gl.uniform2fv(polygonProgram.locations["camera_offset"], [offset_w, offset_h]);
+
+                gl.useProgram(bezierProgram);
+                gl.uniform2fv(bezierProgram.locations["resolution"], [2/width, -2/height]);
+                gl.uniform2fv(bezierProgram.locations["camera_offset"], [offset_w, offset_h]);
+        */
     };
 
 

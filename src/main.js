@@ -14,6 +14,8 @@ const vvgl = (function(canvas, options={}) {
     const BucketManager = require('./geometry/buckets');
     const ShapeList = require('./geometry/shape_list');
     const Renderer = require('./renderer');
+    const Camera = require('./camera');
+
 
     const vvgl = {};
 
@@ -23,6 +25,8 @@ const vvgl = (function(canvas, options={}) {
     const polygonProgram = new PolygonProgram(gl);
 
 
+    const camera = new Camera(gl, bezierProgram, polygonProgram);
+
     const bezier_buffer = gl.createBuffer();
     const element_array_index_buffer = gl.createBuffer();
 
@@ -31,14 +35,6 @@ const vvgl = (function(canvas, options={}) {
     let bucket_manager;
     let update_manager;
     let renderer;
-
-
-
-    let width = 2560;
-    let height= 1440;
-
-
-    const data = {};
 
 
     const array_index = new Uint16Array(50000);
@@ -86,23 +82,9 @@ const vvgl = (function(canvas, options={}) {
 
         bezierProgram.enableAttributes();
 
-
-
-        gl.useProgram(polygonProgram);
-        gl.uniform2fv(polygonProgram.locations["resolution"], [2/width, -2/height]);
-
-        gl.useProgram(bezierProgram);
-        gl.uniform2fv(bezierProgram.locations["resolution"], [2/width, -2/height]);
+        camera.set();
 
     }
-
-
-
-
-
-
-
-
 
 
 
