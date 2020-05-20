@@ -1,11 +1,11 @@
 class UpdateManager{
 
-    constructor(vvgl, updates, shape_list, duration){
+    constructor(updates, shape_list, duration){
 
         this.duration = duration;
 
         this.updates = this.unpack(updates);
-        this.vvgl = vvgl;
+        this.frame = 0;
         this.shape_list = shape_list;
 
 
@@ -34,7 +34,9 @@ class UpdateManager{
     update(){
 
 
-        let updates = this.updates[this.vvgl.frame];
+        this.frame ++;
+
+        let updates = this.updates[this.frame];
 
         if(!updates) return null;
 

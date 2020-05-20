@@ -36,9 +36,6 @@ const vvgl = (function(canvas, options={}) {
     let height= 1440;
 
 
-
-    vvgl.frame = 0;
-
     const data = {};
 
 
@@ -513,10 +510,10 @@ const vvgl = (function(canvas, options={}) {
                 shape_list = new ShapeList(json.shapes);
                 bucket_manager = new BucketManager(shape_list.shapes);
 
-                update_manager = new UpdateManager(vvgl, json.updates, shape_list, json.duration);
-
+                update_manager = new UpdateManager(json.updates, shape_list, json.duration);
 
                 vvgl.duration = update_manager.duration;
+                vvgl.frame = update_manager.frame;
 
 
                 setBufferData();
@@ -539,7 +536,6 @@ const vvgl = (function(canvas, options={}) {
 
     function update(time) {
 
-        vvgl.frame ++;
 
         update_manager.update();
 
