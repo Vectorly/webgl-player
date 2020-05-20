@@ -28,7 +28,7 @@ const vvgl = (function(canvas, options={}) {
     const camera = new Camera(gl, bezierProgram, polygonProgram);
 
     const bezier_buffer = gl.createBuffer();
-    const element_array_index_buffer = gl.createBuffer();
+
 
 
     let shape_list;
@@ -37,18 +37,6 @@ const vvgl = (function(canvas, options={}) {
     let renderer;
 
 
-    const array_index = new Uint16Array(50000);
-    const bezier_index = new Uint16Array(50000);
-
-
-    if(gl.gl2){
-
-        array_index.fill(0xffff);
-        for(let i = 0; i < bezier_index.length; i++){
-            bezier_index[i] = i;
-        }
-
-    }
 
 
     prepareCanvas();
@@ -130,8 +118,6 @@ const vvgl = (function(canvas, options={}) {
 
 
     }
-
-
 
     function update(time) {
 
