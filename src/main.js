@@ -314,15 +314,12 @@ const vvgl = (function(canvas, options={}) {
                 let element = path[i];
 
 
-                if (element === 'l') {
-
-
+                if (element === 0) {
 
                     x = [0, 0, path[i + 1], path[i + 1]].map(x => x + start[0]);
                     y = [0, 0, path[i + 2], path[i + 2]].map(y => y + start[1]);
 
-                    last_curve = path.slice(i, i+3);
-
+                    last_curve = ['l'];
 
                     start[0] = x[3];
                     start[1] = y[3];
