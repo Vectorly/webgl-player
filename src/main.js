@@ -11,10 +11,10 @@ const vvgl = (function(canvas, options={}) {
     const BezierProgram = require('./programs/bezier');
     const PolygonProgram = require('./programs/polygon');
 
+    const UpdateManager = require('./update');
+
 
     const vvgl = {};
-
-
 
     const gl = new WebGLContext(canvas);
 
@@ -22,11 +22,8 @@ const vvgl = (function(canvas, options={}) {
     const polygonProgram = new PolygonProgram(gl);
 
 
-
-
     const bezier_buffer = gl.createBuffer();
     const element_array_index_buffer = gl.createBuffer();
-
 
 
     let shape_list;
@@ -35,14 +32,8 @@ const vvgl = (function(canvas, options={}) {
 
 
 
-
-
     let width = 2560;
     let height= 1440;
-
-    let offset_w = 0;
-    let offset_h = 0;
-
 
 
 
@@ -70,19 +61,12 @@ const vvgl = (function(canvas, options={}) {
 
 
 
-
-
-
-
-
-
     function setBufferData() {
 
         gl.bindBuffer(gl.ARRAY_BUFFER, bezier_buffer);
         gl.bufferData(gl.ARRAY_BUFFER, shape_list.buffer_data, gl.DYNAMIC_DRAW);
 
     }
-
 
 
     function prepareCanvas() {
@@ -481,58 +465,7 @@ const vvgl = (function(canvas, options={}) {
     }
 
 
-    class UpdateManager{
 
-        constructor(updates, shape_list, duration){
-
-            this.duration = duration;
-
-            this.updates = this.unpack(updates);
-
-
-
-            this.shape_list = shape_list;
-
-
-
-        }
-
-        unpack(updates){
-
-            const updates_by_frame = new Array(this.duration);
-
-
-            for (const update of updates){
-
-                if(!updates_by_frame[update.frame]) updates_by_frame[update.frame] = [];
-
-                updates_by_frame[update.frame].push(update);
-            }
-
-
-
-            return updates_by_frame;
-
-        }
-
-
-        update(){
-
-
-            let updates = this.updates[vvgl.frame];
-
-            if(!updates) return null;
-
-            for (const update of updates){
-
-                this.shape_list.update(update);
-
-            }
-
-
-        }
-
-    }
 
     class BucketManager{
 
@@ -579,7 +512,8 @@ const vvgl = (function(canvas, options={}) {
 
                 shape_list = new ShapeList(json.shapes);
                 bucket_manager = new BucketManager(shape_list.shapes);
-                update_manager = new UpdateManager(json.updates, shape_list, json.duration);
+
+                update_manager = new UpdateManager(vvgl, json.updates, shape_list, json.duration);
 
 
                 vvgl.duration = update_manager.duration;
