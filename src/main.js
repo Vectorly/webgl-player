@@ -305,6 +305,10 @@ const vvgl = (function(canvas, options={}) {
             let last_curve;
 
 
+            start[0] += path[1];
+            start[1] += path[2];
+
+            i += 3;
 
             while (i < path.length) {
 
@@ -313,12 +317,11 @@ const vvgl = (function(canvas, options={}) {
 
                 if (element === "m") {
 
-                    start[0] += path[i + 1];
-                    start[1] += path[i + 2];
+                    console.log(`M`);
+                    console.log(path.slice(i, i+3));
 
-                    i += 3;
 
-                } else if (element === "l") {
+                } else if (element === 'l') {
 
 
 
@@ -488,6 +491,7 @@ const vvgl = (function(canvas, options={}) {
             let offset= 0;
             let start = [0, 0];
 
+            console.log(`Shape start`);
 
             for (let i=0; i < contours.length; i++){
 
