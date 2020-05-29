@@ -1,227 +1,363 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>WebGL Demo</title>
     <script src="vvgl.js"></script>
 </head>
-<body>
-
-
-<canvas id="glcanvas" width="1920" height="1080" style="background: black;">
-    WebGL not supported!
-</canvas>
-
-
-<script>
-
-
-function packInt16(x) {
-
-
-    x = Math.abs(x);
-    const data = [0,0];
-
-    let div =  x/256;
-
-    data[0] = Math.floor(div);
-    data[1] = (div - data[0])*256;
-
-
-    return data;
-
-}
-
-
-
-
-
-
-
-const renderer = vvgl("glcanvas");
-
-
-
-loadJSON("data.json", function (json) {
-
-
-    const foreground_shapes = json.foreground_shapes;
-    const background_shapes = json.background_shapes;
-
-    const updates = json.updates;
-
-
-    let number_lines = 0;
-    foreground_shapes.forEach(process);
-    background_shapes.forEach(process);
-
-    function process(shape) {
-
-
-        let contour_lengths = [];
-        let bezier_curves = [];
-
-
-
-        for (let i =0; i < shape.contours.length; i++){
-
-            let contour = shape.contours[i];
-
-            if(contour.length > 0) contour_lengths.push(contour.length);
-
-            for(let j = 0; j < contour.length; j++ ){
-
-                let curve  = [];
-
-                if(contour[j].length ===4) {
-                    number_lines++;
-
-                    curve = [contour[j][0], contour[j][0],  contour[j][2], contour[j][2], contour[j][1], contour[j][1], contour[j][3], contour[j][3]];
-
-                } else{
-                    curve = [contour[j][0], contour[j][2],  contour[j][4], contour[j][6], contour[j][1], contour[j][3], contour[j][5], contour[j][7]];
-                }
-
-
-                let curve_points = [];
-
-                for(let k = 0; k < 8; k++){
-                    curve_points.push(curve[k]);
-                }
-
-
-                if(curve_points.length  > 0){
-                    bezier_curves.push(curve_points);
-                }
-
-
-            }
-
-        }
-
-        shape.max_contours = contour_lengths.length;
-
-        shape.data = [shape.xy[0], shape.xy[1],  shape.color[0], shape.color[1], shape.color[2]];
-
-
-
-        shape.bezier_curves = bezier_curves;
-        shape.contour_lengths = contour_lengths;
-
-
-
+<style>
+    html,
+    body {
+        height: 100%;
     }
 
+    body {
+        margin: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background: #F8FFAE;
+        background: black;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
+
+    @keyframes spin {
+        from {
+            transform: rotateZ(0);
+        }
+
+        to {
+            transform: rotateZ(1turn);
+        }
+    }
+
+    .player {
+        width: 100vw;
+        min-width: 100vw;
+        height: 48px;
+        box-shadow: 0 4px 16px 0 rgba(0, 0, 0, 0.07);
+        display: flex !important;
+        justify-content: space-between;
+        align-items: center;
+        padding-left: 24px;
+        padding-right: 24px;
+        border-radius: 4px;
+        user-select: none;
+        background-color: #fff;
+        box-sizing: border-box;
+        outline: none;
+        position: absolute;
+        bottom: 0px;
+    }
+
+    .player.player-accessible .play-pause-btn:hover,
+    .player.player-accessible .controls:hover,
+    .player.player-accessible .volume__button:hover,
+    .player.player-accessible .volume__controls:hover,
+
+    .player svg,
+    .player img {
+        display: block;
+    }
+
+    .player .holder {
+        position: relative;
+    }
+
+    .player .holder .loading .loading__spinner {
+        position: absolute;
+        left: -3px;
+        bottom: 2px;
+        width: 16px;
+        height: 16px;
+        border: 2px solid #b0b0b0;
+        border-right-color: rgba(0, 0, 0, 0);
+        border-radius: 50%;
+        animation: spin 0.4s linear infinite;
+    }
+
+    .player .holder .play-pause-btn {
+        visibility: hidden;
+        cursor: pointer;
+        outline: none;
+    }
+
+    .player .holder .play-pause-btn:focus {
+        outline: none;
+    }
+
+    .player .slider {
+        flex-grow: 1;
+        background-color: #d8d8d8;
+        cursor: pointer;
+        position: relative;
+    }
+
+    .player .slider .progress {
+        background-color: #44bfa3;
+        border-radius: inherit;
+        position: absolute;
+        pointer-events: none;
+    }
+
+    .player .slider .progress .pin {
+        height: 16px;
+        width: 16px;
+        border-radius: 8px;
+        background-color: #44bfa3;
+        position: absolute;
+        pointer-events: all;
+        box-shadow: 0 1px 1px 0 rgba(0, 0, 0, 0.32);
+    }
+
+    .player .slider .progress .pin::after {
+        content: "";
+        display: block;
+        background: rgba(0, 0, 0, 0);
+        width: 200%;
+        height: 200%;
+        margin-left: -50%;
+        margin-top: -50%;
+        border-radius: 50%;
+    }
+
+    .player .controls {
+        font-family: "Roboto", sans-serif;
+        font-size: 16px;
+        line-height: 18px;
+        color: #55606e;
+        display: flex;
+        flex-grow: 1;
+        justify-content: space-between;
+        align-items: center;
+        margin-left: 15px;
+        margin-right: 15px;
+        outline: none;
+    }
+
+    .player .controls .controls__slider {
+        margin-left: 16px;
+        margin-right: 16px;
+        border-radius: 2px;
+        height: 4px;
+    }
+
+    .player .controls .controls__slider .controls__progress {
+        width: 0;
+        height: 100%;
+    }
+
+    .player .controls .controls__slider .controls__progress .progress__pin {
+        right: -8px;
+        top: -6px;
+    }
+
+    .player .controls span {
+        cursor: default;
+    }
+
+    .player .controls:focus {
+        outline: none;
+    }
+
+    .player .volume {
+        position: relative;
+    }
+
+    .player .volume .volume__button {
+        cursor: pointer;
+        outline: none;
+    }
+
+    .player .volume .volume__button:focus {
+        outline: none;
+    }
+
+    .player .volume .volume__button.open path {
+        fill: #44bfa3;
+    }
+
+    .player .volume .volume__controls {
+        width: 30px;
+        height: 135px;
+        background-color: rgba(0, 0, 0, 0.62);
+        border-radius: 7px;
+        position: absolute;
+        left: -3px;
+        bottom: 52px;
+        flex-direction: column;
+        align-items: center;
+        display: flex;
+        z-index: 2;
+        outline: none;
+    }
+
+    .player .volume .volume__controls .volume__slider {
+        margin-top: 12px;
+        margin-bottom: 12px;
+        width: 6px;
+        border-radius: 3px;
+    }
+
+    .player .volume .volume__controls .volume__slider .volume__progress {
+        bottom: 0;
+        height: 100%;
+        width: 6px;
+    }
+
+    .player .volume .volume__controls .volume__slider .volume__progress .volume__pin {
+        left: -5px;
+        top: -8px;
+    }
+
+    .player .volume .volume__controls:focus {
+        outline: none;
+    }
+
+    .player .volume .volume__controls.hidden {
+        display: none;
+    }
+
+    .player .volume .volume__controls.top {
+        bottom: 52px;
+        left: -3px;
+    }
+
+    .player .volume .volume__controls.middle {
+        bottom: -54px;
+        left: 54px;
+    }
+
+    .player .volume .volume__controls.bottom {
+        bottom: -164px;
+        left: -3px;
+    }
+
+    .player:focus {
+        outline: none;
+    }
+
+</style>
+
+<body>
+
+    <canvas id="glcanvas" 
+            style="background: black;position: absolute;top: 0;">
+        WebGL not supported!
+    </canvas>
+    
+    <div class="player">
+        <div class="holder">
+            <div class="loading">
+                <div class="loading__spinner"></div>
+            </div>
+            <div class="play-pause-btn" aria-label="Play" role="button">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="24" viewBox="0 0 18 24">
+                    <path fill="#566574" fill-rule="evenodd" d="M18 12L0 24V0" class="play-pause-btn__icon" />
+                </svg>
+            </div>
+        </div>
+        <div class="controls">
+            <span class="controls__current-time" aria-live="off" role="timer">00:00</span>
+            <div class="controls__slider slider" data-direction="horizontal">
+                <div class="controls__progress progress" aria-label="Time Slider" aria-valuemin="0" aria-valuemax="100"
+                    aria-valuenow="0" role="slider">
+                    <div class="pin progress__pin" data-method="rewind"></div>
+                </div>
+            </div>
+            <span class="controls__total-time">00:00</span>
+        </div>
+        <div class="volume">
+            <div class="volume__button" aria-label="Open Volume Controls" role="button">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+                    <path class="volume__speaker" fill="#566574" fill-rule="evenodd"
+                        d="M14.667 0v2.747c3.853 1.146 6.666 4.72 6.666 8.946 0 4.227-2.813 7.787-6.666 8.934v2.76C20 22.173 24 17.4 24 11.693 24 5.987 20 1.213 14.667 0zM18 11.693c0-2.36-1.333-4.386-3.333-5.373v10.707c2-.947 3.333-2.987 3.333-5.334zm-18-4v8h5.333L12 22.36V1.027L5.333 7.693H0z" />
+                </svg>
+            </div>
+            <div class="volume__controls hidden">
+                <div class="volume__slider slider" data-direction="vertical">
+                    <div class="volume__progress progress" aria-label="Volume Slider" aria-valuemin="0" aria-valuemax="100"
+                        aria-valuenow="81" role="slider">
+                        <div class="pin volume__pin" data-method="changeVolume"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+
+        document.getElementById("glcanvas").setAttribute("width", window.innerWidth);
+        document.getElementById("glcanvas").setAttribute("height", window.innerHeight);
+        
+        const renderer = vvgl("glcanvas");
+        
+        loadJSON("data.json", function (data) {
+
+            renderer.load(data, function () {
 
 
-    updates.forEach(function (frame_update, frame_num) {
+                /*
+                            renderer.setFrame(150);
+
+                            renderer.render();
+
+
+                            setTimeout(function () {
+
+                                renderer.setFrame(5);
+
+                                renderer.render();
+
+                            }, 1000);
+
+                            */
 
 
 
-        if(!frame_update) return null;
+                function step() {
 
-        frame_update.forEach(function (update) {
+                    renderer.update();
 
+                    renderer.render();
 
-            if(update.type === "camera") return null;
-
-
-            if(update.type === "hide") return null;
-            if(update.type === "show") {
-                update.contour_lengths = foreground_shapes[update.i].contour_lengths;
-                update.bezier_curves = foreground_shapes[update.i].bezier_curves;
-                return null;
-            }
-
-
-            let contour_lengths = [];
-            let bezier_curves = [];
-
-
-
-
-            for (let i =0; i < update.contours.length; i++){
-
-                let contour = update.contours[i];
-
-                if(contour.length > 0) contour_lengths.push(contour.length);
-                for(let j = 0; j < contour.length; j++ ){
-
-                    let curve  = [];
-
-                    if(contour[j].length ===4) {
-                        number_lines++;
-
-                        curve = [contour[j][0], contour[j][0],  contour[j][2], contour[j][2], contour[j][1], contour[j][1], contour[j][3], contour[j][3]];
-
-                    } else{
-                        curve = [contour[j][0], contour[j][2],  contour[j][4], contour[j][6], contour[j][1], contour[j][3], contour[j][5], contour[j][7]];
-                    }
-
-
-                    let curve_points = [];
-
-                    for(let k = 0; k < 8; k++){
-                        curve_points.push(curve[k]);
-                    }
-
-
-                    if(curve_points.length  > 0){
-                        bezier_curves.push(curve_points);
+                    if (renderer.frame < renderer.duration) return window.requestAnimationFrame(step);
+                    else {
+                        console.log(`Done`);
                     }
 
                 }
 
-            }
+                renderer.render();
+                window.requestAnimationFrame(step);
 
 
-            if(foreground_shapes[update.i].max_contours < contour_lengths.length){
-                foreground_shapes[update.i].max_contours = contour_lengths.length
-            }
 
-            update.bezier_curves = bezier_curves;
-            update.contour_lengths = contour_lengths;
-
+            });
 
         });
 
 
-    });
 
 
+        function loadJSON(filename, callback) {
 
 
-    renderer.load({
-        foreground_shapes: foreground_shapes,
-        background_shapes: background_shapes,
-        updates: updates,
-        num_bezier_curves: json.num_curves
-    });
+            let oReq = new XMLHttpRequest();
+            oReq.onload = function (e) {
 
+                callback(new Uint8Array(this.response));
+            };
+            oReq.open("GET", filename);
+            oReq.responseType = "arraybuffer";
+            oReq.send();
 
-
-    renderer.play();
-
-});
-
-
-
-
-function loadJSON(filename, callback) {
-
-
-    let oReq = new XMLHttpRequest();
-    oReq.onload = function (e) {
-
-        callback(JSON.parse(oReq.responseText));
-    };
-    oReq.open("GET", filename);
-    oReq.responseType = "text";
-    oReq.send();
-
-}
-
-</script>
+        }
+    </script>
 
 </body>
+
 </html>
